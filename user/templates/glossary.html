@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Colombus Capital</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <link href="static/img/white.png" rel="icon">
+  <link href="static/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Muli:300,400,700|Playfair+Display:400,700,900" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='fonts/icomoon/style.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='css/bootstrap.min.css') }}"rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='css/magnific-popup.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='css/jquery-ui.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='css/owl.carousel.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='css/owl.theme.default.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='css/bootstrap-datepicker.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='fonts/flaticon/font/flaticon.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='css/aos.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='css/styleblog.css')}}" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('user_bp.static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top ">
+    <div class="container d-flex align-items-center">
+      <a href="{{ url_for('user_bp.home') }}" class="logo me-auto"><img src="{{ url_for('user_bp.static', filename='img/White.png') }}" class="img-fluid" alt="CC"></a>
+
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto active" href="{{ url_for('user_bp.home') }}">Home</a></li>
+          <li><a class="nav-link scrollto" href="#about">About</a></li>
+          <li><a class="nav-link scrollto" href="#services">Services</a></li>
+          <li><a class="nav-link scrollto" href="#contact">Book Demo</a></li>
+          <li><a class="nav-link scrollto" href="#team">Team</a></li>
+          <li><a class="nav-link scrollto" href="{{ url_for('user_bp.glossary') }}">Blog</a></li>
+          <li><button type="button" class="getstarted scrollto" data-target="#login" data-toggle="modal">Login</button></li>
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav><!-- .navbar -->
+
+    </div>
+  </header><!-- End Header -->
+
+  <div class="slide-one-item home-slider owl-carousel">
+
+
+    <div class="site-cover site-cover-sm same-height overlay" style="background-image:  url('{{ url_for('user_bp.static', filename='images/img_1.webp') }}'); height:700px;">
+      <div class="container">
+        <div class="row same-height align-items-center">
+          <div class="col-md-12 col-lg-6">
+            <div class="post-entry">
+              <span class="post-category text-white bg-success mb-3">Tech</span>
+              <h2 class="mb-4"><a href="{{ url_for('user_bp.single1') }}">The Benefits of Using a TaaS Model for FX Operations</a></h2>
+              <div class="post-meta align-items-center text-left">
+                <span class="d-inline-block mt-1">By Colombus Expert</span>
+                <span>&nbsp;-&nbsp; February 01, 2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="site-cover site-cover-sm same-height overlay" style="background-image:url('{{ url_for('user_bp.static', filename='images/img_2.webp') }}');height:700px;">
+      <div class="container">
+        <div class="row same-height align-items-center">
+          <div class="col-md-12 col-lg-6">
+            <div class="post-entry">
+              <span class="post-category text-white bg-success mb-3">Strategy</span>
+              <h2 class="mb-4"><a href="{{ url_for('user_bp.single2') }}">Forex Solutions for SMEs: Overcoming Challenges and Exploring Opportunities</a></h2>
+              <div class="post-meta align-items-center text-left">
+                <span class="d-inline-block mt-1">By Colombus Expert</span>
+                <span>&nbsp;-&nbsp; February 10, 2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="site-cover site-cover-sm same-height overlay" style="background-image: url('{{ url_for('user_bp.static', filename='images/img_3.webp') }}');height:700px;">
+      <div class="container">
+        <div class="row same-height align-items-center">
+          <div class="col-md-12 col-lg-6">
+            <div class="post-entry">
+              <span class="post-category text-white bg-success mb-3">Strategy</span>
+              <h2 class="mb-4"><a href="{{ url_for('user_bp.single3') }}">Optimizing Investments Through Currency Hedging: A Strategic Approach for Asset Managers and Owners</a></h2>
+              <div class="post-meta align-items-center text-left">
+                <span class="d-inline-block mt-1">By Colombus Expert</span>
+                <span>&nbsp;-&nbsp; February 12, 2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="site-cover site-cover-sm same-height overlay" style="background-image: url('{{ url_for('user_bp.static', filename='images/img_4.webp') }}');height:700px;">
+      <div class="container">
+        <div class="row same-height align-items-center">
+          <div class="col-md-12 col-lg-6">
+            <div class="post-entry">
+              <span class="post-category text-white bg-success mb-3">Regulations</span>
+              <h2 class="mb-4"><a href="{{ url_for('user_bp.single4') }}">New Regulatory Data Reveals Extensive Price Discrimination in the FX Derivatives Market</a></h2>
+              <div class="post-meta align-items-center text-left">
+                <span class="d-inline-block mt-1">By Colombus Expert</span>
+                <span>&nbsp;-&nbsp; February 15, 2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="site-cover site-cover-sm same-height overlay" style="background-image: url('{{ url_for('user_bp.static', filename='images/img_5.webp') }}');height:700px;">
+      <div class="container">
+        <div class="row same-height align-items-center">
+          <div class="col-md-12 col-lg-6">
+            <div class="post-entry">
+              <span class="post-category text-white bg-success mb-3">Regulations</span>
+              <h2 class="mb-4"><a href="{{ url_for('user_bp.single5') }}">Embracing Automation in FX Management: A Game-Changer for Financial Growth</a></h2>
+              <div class="post-meta align-items-center text-left">
+                <span class="d-inline-block mt-1">By Colombus Expert</span>
+                <span>&nbsp;-&nbsp; February 15, 2024</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+    <div class="py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="rounded border p-4">
+              <div class="row align-items-stretch">
+
+                <div class="col-md-6 col-lg-4 mb-3 mb-lg-0">
+                  <a href="{{ url_for('user_bp.single1') }}" class="d-flex post-sm-entry">
+                    <figure class="mr-3 mb-0"><img src="{{ url_for('user_bp.static', filename='images/img_1.webp') }}" alt="Image" class="rounded"></figure>
+                    <div>
+                      <span class="post-category bg-danger text-white m-0 mb-2">Tech</span>
+                      <h2 class="mb-0">The Benefits of Using a TaaS Model for FX Operations </h2>
+                    </div>
+                  </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4 mb-3 mb-lg-0">
+                  <a href="{{ url_for('user_bp.single4') }}" class="d-flex post-sm-entry">
+                    <figure class="mr-3 mb-0"><img src="{{ url_for('user_bp.static', filename='images/img_4.webp') }}" alt="Image" class="rounded"></figure>
+                    <div>
+                      <span class="post-category bg-warning text-white m-0 mb-2">Regulations</span>
+                      <h2 class="mb-0">Embracing Automation in FX Management</h2>
+                    </div>
+                  </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4 mb-3 mb-lg-0">
+                  <a href="{{ url_for('user_bp.single2') }}" class="d-flex post-sm-entry">
+                    <figure class="mr-3 mb-0"><img src="{{ url_for('user_bp.static', filename='images/img_2.webp') }}" alt="Image" class="rounded"></figure>
+                    <div>
+                      <span class="post-category bg-success text-white m-0 mb-2">Strategy</span>
+                      <h2 class="mb-0">Forex Solutions for SMEs></h2>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="site-section">
+      <div class="container">
+
+        <div class="row align-items-stretch retro-layout">
+
+          <div class="col-md-5">
+            <a href="{{ url_for('user_bp.single3') }}" class="hentry img-1 h-100 gradient" style="background-image: url('{{ url_for('user_bp.static', filename='images/img_3.webp') }}')">
+              <span class="post-category text-white bg-danger">Strategy</span>
+              <div class="text">
+                <h2>Optimizing Investments Through Currency Hedging</h2>
+                <span>February 12, 2019</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="col-md-7">
+
+            <a href="{{ url_for('user_bp.single1') }}" class="hentry img-2 v-height mb30 gradient" style="background-image: url('{{ url_for('user_bp.static', filename='images/img_1.webp') }}')">
+              <span class="post-category text-white bg-success">Tech</span>
+              <div class="text text-sm">
+                <h2>The Benefits of Using a TaaS Model for FX Operations</h2>
+                <span>-&nbsp; February 01, 2024</span>
+              </div>
+            </a>
+
+            <div class="two-col d-block d-md-flex">
+              <a href="{{ url_for('user_bp.single4') }}" class="hentry v-height img-2 gradient" style="background-image: url('{{ url_for('user_bp.static', filename='images/img_4.webp') }}')">
+                <span class="post-category text-white bg-primary">Regulations</span>
+                <div class="text text-sm">
+                  <h2>New Regulatory Data Reveals Extensive Price Discrimination in the FX Derivatives Market</h2>
+                  <span>February 1, 2024</span>
+                </div>
+              </a>
+              <a href="{{ url_for('user_bp.single2') }}" class="hentry v-height img-2 ml-auto gradient" style="background-image: url('{{ url_for('user_bp.static', filename='images/img_2.webp') }}')">
+                <span class="post-category text-white bg-warning">Strategy</span>
+                <div class="text text-sm">
+                  <h2>Forex Solutions for SMEs</h2>
+                  <span>&nbsp;-&nbsp; February 10, 2024</span>
+                </div>
+              </a>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="site-section">
+      <div class="container">
+        <div class="row mb-5">
+          <div class="col-12 section-heading"><h2>Popular Posts</h2></div>
+        </div>
+        <div class="row">
+          <div class="col-lg-6 mb-5 mb-lg-0">
+            <div class="entry2">
+              <a href="{{ url_for('user_bp.single3') }}"><img src="{{ url_for('user_bp.static', filename='images/img_3.webp') }}" alt="Image" class="img-fluid rounded"></a>
+              <span class="post-category text-white bg-success mb-3">Tech</span>
+              <h2><a href="{{ url_for('user_bp.single3') }}">Optimizing Investments Through Currency Hedging</a></h2>
+              <div class="post-meta align-items-center text-left clearfix">
+                <span>- February 12, 2024</span>
+              </div>
+              </div>
+          </div>
+          <div class="col-lg-6 pl-lg-4">
+            <div class="entry3 d-block d-sm-flex">
+              <figure class="figure order-2"><a href="{{ url_for('user_bp.single1') }}"><img src="{{ url_for('user_bp.static', filename='images/img_1.webp') }}" alt="Image" class="img-fluid rounded"></a></figure>
+              <div class="text mr-4 order-1">
+                <span class="post-category text-white bg-success mb-3">Tech</span>
+                <h2><a href="{{ url_for('user_bp.single1') }}">The Benefits of Using a TaaS Model for FX Operations</a></h2>
+                <span class="post-meta mb-3 d-block">-&nbsp; February 01, 2024</span>
+              </div>
+            </div>
+
+            <div class="entry3 d-block d-sm-flex">
+              <figure class="figure order-2"><a href="{{ url_for('user_bp.single1') }}"><img src="{{ url_for('user_bp.static', filename='images/img_2.webp') }}" alt="Image" class="img-fluid rounded"></a></figure>
+              <div class="text mr-4 order-1">
+                <span class="post-category text-white bg-success mb-3">Strategy</span>
+                <h2><a href="{{ url_for('user_bp.single1') }}">Forex Solutions for SMEs</a></h2>
+                <span class="post-meta mb-3 d-block">-&nbsp; February 10, 2024</span>
+              </div>
+            </div>
+
+            <div class="entry3 d-block d-sm-flex">
+              <figure class="figure order-2"><a href="{{ url_for('user_bp.single1') }}"><img src="{{ url_for('user_bp.static', filename='images/img_4.webp') }}" alt="Image" class="img-fluid rounded"></a></figure>
+              <div class="text mr-4 order-1">
+                <span class="post-category text-white bg-success mb-3">Tech</span>
+                <h2><a href="{{ url_for('user_bp.single3') }}">Optimizing Investments Through Currency Hedging</a></h2>
+                <span class="post-meta mb-3 d-block">- February 10, 2024</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-3 col-md-6 footer-contact">
+            <h3>Colombus Capital</h3>
+            <p>
+              Immeuble Tanit <br>
+              Rue d’Erable<br>
+              Lac II <br><br>
+              <strong>Phone:</strong> +216 53 789 000<br>
+              <strong>Email:</strong> contact@colombus-capital.com<br>
+            </p>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Useful Links</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.bct.gov.tn/bct/siteprod/documents/Reg_des_Chges_ao13.pdf">FX Regulation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.globalfxc.org/docs/fx_global.pdf">FX Global Code</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.cbf.org.tn/circulaires-et-notes-2/">Circular and Notes</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Services</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Transparent Pricing</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">FX Workflow Automation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Low Cost Execution</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Social Networks</h4>
+            <p>Keep connected on our social media</p>
+            <div class="social-links mt-3">
+              <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+              <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container footer-bottom clearfix">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Colombus Capital</span></strong>. All Rights Reserved
+      </div>
+    </div>
+  </footer><!-- End Footer -->
+
+  <div id="preloader"></div>
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    <script src="{{ url_for('user_bp.static', filename='js/jquery-3.3.1.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='js/jquery-migrate-3.0.1.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='js/jquery-ui.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='js/popper.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='js/bootstrap.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='js/owl.carousel.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='js/jquery.stellar.min.js') }}"></script>
+
+  <script src="{{ url_for('user_bp.static', filename='js/jquery.countdown.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='js/jquery.magnific-popup.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='js/bootstrap-datepicker.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='js/aos.js') }}"></script>
+
+    <script src="{{ url_for('user_bp.static', filename='js/mainblog.js') }}"></script>
+
+
+  <!-- Template Main JS File -->
+   <script src="{{ url_for('user_bp.static', filename='js/main.js') }}"></script>
+
+
+</body>
+
+</html>

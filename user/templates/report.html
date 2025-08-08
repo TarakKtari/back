@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Colombus Capital</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <!-- Favicons -->
+  <link href="{{ url_for('user_bp.static', filename='img/white.png')}}" rel="icon">
+  <link href="{{ url_for('user_bp.static', filename='img/apple-touch-icon.png')}}" rel="apple-touch-icon">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@8.4.0/dist/handsontable.full.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@8.4.0/dist/handsontable.full.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+  <link href="{{ url_for('user_bp.static', filename='vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}"rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/boxicons/css/boxicons.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/glightbox/css/glightbox.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/remixicon/remixicon.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.css')}}" rel="stylesheet">
+
+
+  <!-- Template Main CSS File -->
+  <link rel="stylesheet" href="{{ url_for('user_bp.static', filename='css/dashboard.css') }}">
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <style>
+    .spread{
+    padding-top: 90px;
+    padding-left: 40px;
+    display: flex;
+    align-items: flex-start;
+    .btn{
+      padding: 8px 20px;
+      margin-left: 30px;
+      border-radius: 50px;
+      color: #fff;
+      background: #020838;
+      font-size: 14px;
+      border: 2px solid #020838;
+      font-weight: 600;
+    }
+    .htCore {
+            border-radius: 10px !important;
+        }
+    .handsontable th {
+            background-color: #e0e0e0; /* Light grey header */
+            color: #333;
+        }
+    .handsontable td {
+            background-color: #fafafa; /* Very light pastel color */
+    }
+    #dataInput {
+            width: 80%;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        .handsontable th {
+            background-color: #00316E; /* Soft blue for headers */
+            color: white;
+            border-radius: 5px;
+        }
+        .handsontable td {
+            background-color: #FFFFFF; /* Light shade for rows */
+            border-radius: 3px;
+            height: 30px;
+        }
+        .handsontable .ht_master .htCore > tbody > tr:nth-child(even) > td {
+            background-color: #edfaff; /* Slightly darker shade for alternate rows */
+        }
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .control-panel label, .control-panel input {
+            font-size: 16px;
+        }
+        .put {
+          background: #f3f5fa;
+          text-align: center;
+          font-size: 15px;
+          color: #444444;
+          position: relative;
+          border-radius: 40px;
+          text-align: left;
+          width: 100px;
+          padding-left:20px;
+          font-weight: bold;
+        }
+         .instructions {
+            flex: 1;
+            padding: 10px;
+            max-width: 430px; /* Adjust as needed */
+            padding-top: 70px;
+            font-size: 11px;
+            color: #373c66;
+
+        }
+        .handsontable-container {
+            flex: 2;
+            padding: 10px;
+        }
+        @media (max-width: 1366px) {
+        .navbar .dropdown .dropdown ul {
+          left: -90%;
+        }
+
+        .navbar .dropdown .dropdown:hover>ul {
+          left: -100%;
+        }
+      }
+
+       @media (max-width: 991px) {
+      .mobile-nav-toggle {
+        display: block;
+      }
+
+      .navbar ul {
+        display: none;
+      }
+      }
+
+      .navbar-mobile {
+        position: fixed;
+        overflow: hidden;
+        top: 0;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        background-image: url('static/img/bg.png');
+        transition: 0.3s;
+        z-index: 999;
+      }
+
+      .navbar-mobile .mobile-nav-toggle {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+      }
+
+      .navbar-mobile ul {
+        display: block;
+        position: absolute;
+        top: 55px;
+        right: 15px;
+        bottom: 15px;
+        left: 15px;
+        padding: 10px 0;
+        border-radius: 10px;
+        background-color: #fff;
+        overflow-y: auto;
+        transition: 0.3s;
+      }
+
+      .navbar-mobile a,
+      .navbar-mobile a:focus {
+        padding: 10px 20px;
+        font-size: 15px;
+        color: #071C42;
+      }
+
+      .navbar-mobile a:hover,
+      .navbar-mobile .active,
+      .navbar-mobile li:hover>a {
+        color: #F3F5FA;
+      }
+
+      .navbar-mobile .getstarted,
+      .navbar-mobile .getstarted:focus {
+        margin: 15px;
+        color: #071C42;
+      }
+
+      @media (max-width: 991px) {
+      #body {
+        height: 100vh;
+        text-align: center;
+      }
+
+      #body .animated {
+        animation: none;
+      }
+
+      #body .hero-img {
+        text-align: center;
+      }
+
+      #body .hero-img img {
+        width: 50%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #body h1 {
+        font-size: 28px;
+        line-height: 36px;
+      }
+
+      #body h2 {
+        font-size: 18px;
+        line-height: 24px;
+        margin-bottom: 30px;
+      }
+
+      #body .hero-img img {
+        width: 70%;
+      }
+    }
+
+    @media (max-width: 575px) {
+      #body .hero-img img {
+        width: 80%;
+      }
+
+      #body .btn-get-started {
+        font-size: 16px;
+        padding: 10px 24px 11px 24px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top ">
+    <div class="container d-flex align-items-center">
+      <a href="{{ url_for('user_bp.home') }}" class="logo me-auto"><img src="{{ url_for('user_bp.static', filename='img/white.png')}}" class="img-fluid" alt="CC"></a>
+
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto active" href="{{ url_for('user_bp.home') }}">Home</a></li>
+          <li><a class="nav-link scrollto" href="#about">About</a></li>
+          <li><a class="nav-link scrollto" href="#services">Services</a></li>
+          <li><a class="nav-link scrollto" href="#contact">Book Demo</a></li>
+          <li><a class="nav-link scrollto" href="#team">Team</a></li>
+          <li><a class="nav-link scrollto" href="{{ url_for('user_bp.glossary') }}">Blog</a></li>
+          <li><button type="button" class="getstarted scrollto" data-target="#login" data-toggle="modal">Login</button></li>
+        </ul>
+      </nav><!-- .navbar -->
+
+    </div>
+  </header><!-- End Header -->
+
+  <div class="spread">
+    <div class="handsontable-container">
+      <h3 style="font-family: 'Open Sans', sans-serif;padding-bottom:10px; padding-top:2px;">Data to test...</h3>
+        <div id="dataInput"></div>
+        <div class="control-panel">
+            <label for="addRows" style="margin-top: 10px;font-weight: bold;">Add Rows:</label>
+            <input type="number" class="put" id="addRows" min="1" value="1">
+            <button id="addRowsBtn" class="btn">Add</button>
+            <label for="userEmail" style="margin-top: 10px; margin-left:50px; font-weight: bold;">Your Email:</label>
+            <input type="email" class="put" id="userEmail" style="width:300px;" required>
+            <button id="saveBtn" class="btn">Save Data</button>
+        </div>
+    </div>
+    <div class="instructions">
+      <p>Welcome to our Testing page! This interactive tool is <span style="font-weight:bold;">to make your data entry process as seamless and efficient as possible</span> , closely resembling the familiarity and ease of use of <span style="font-weight:bold;">an Excel spreadsheet:</span></p>
+      <p style="padding: 5px 20px;"><span style="font-weight:bold;">Data Entry: </span>Click on any cell in the grid below to start entering your data. You can copy paste the content from another sheet, just like in Excel.</p>
+      <p style="padding: 5px 20px;"><span style="font-weight:bold;">Add More Rows: </span>If you need more space, simply enter the number of additional rows you require in the 'Add Rows' field and click the 'Add' button. This will dynamically expand the grid to accommodate your data.</p>
+      <p style="padding: 5px 20px;"><span style="font-weight:bold;">Save Your Data: </span>Before saving, please enter your email in the designated field.</p>
+    </div>
+  </div>
+
+  <script>
+    var dataInput = document.getElementById('dataInput');
+    var hot = new Handsontable(dataInput, {
+        startRows: 15,
+        startCols: 5,
+        colHeaders: ["Date", "Currency", "Amount FX", "Rate", "Remark"],
+        columns: [
+            { width: 180 }, // Adjust column width
+            { width: 180 },
+            { width: 180 },
+            { width: 180 },
+            { width: 180 }
+        ],
+        rowHeaders: true,
+        contextMenu: true,
+        manualColumnResize: true,
+        manualRowResize: true
+    });
+
+    document.getElementById('addRowsBtn').addEventListener('click', function() {
+        var numberOfRowsToAdd = parseInt(document.getElementById('addRows').value);
+        hot.alter('insert_row', hot.countRows(), numberOfRowsToAdd);
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', function() {
+    var data = hot.getData();
+    var headers = hot.getColHeader(); // Get the headers from Handsontable
+    var email = document.getElementById('userEmail').value;
+    if (email) {
+        fetch('/save-data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({data: data, email: email, headers: headers}) // Include headers in the JSON payload
+        })
+        .then(response => response.json()) // Ensure that the server responds with JSON
+        .then(responseData => {
+            alert(responseData.message); // Alert with the message from the server
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    } else {
+        alert('Please enter your email.');
+    }
+});
+</script>
+
+<!-- ======= Footer ======= -->
+  <footer id="footer">
+
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-3 col-md-6 footer-contact">
+            <h3>Colombus Capital</h3>
+            <p>
+              Immeuble Tanit <br>
+              Rue d’Erable<br>
+              Lac II <br><br>
+              <strong>Phone:</strong> +216 53 789 000<br>
+              <strong>Email:</strong> contact@colombus-capital.com<br>
+            </p>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Useful Links</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.bct.gov.tn/bct/siteprod/documents/Reg_des_Chges_ao13.pdf">FX Regulation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.globalfxc.org/docs/fx_global.pdf">FX Global Code</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.cbf.org.tn/circulaires-et-notes-2/">Circular and Notes</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Services</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Transparent Pricing</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">FX Workflow Automation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Low Cost Execution</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Social Networks</h4>
+            <p>Keep connected on our social media</p>
+            <div class="social-links mt-3">
+              <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+              <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container footer-bottom clearfix">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Colombus Capital</span></strong>. All Rights Reserved
+      </div>
+    </div>
+  </footer><!-- End Footer -->
+
+  <div id="preloader"></div>
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    <!-- Vendor JS Files -->
+  <script src="{{ url_for('user_bp.static', filename='vendor/aos/aos.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/waypoints/noframework.waypoints.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/php-email-form/validate.js') }}"></script>
+
+  <!-- Template Main JS File -->
+  <script src="{{ url_for('user_bp.static', filename='js/main.js') }}"></script>
+
+    <!-- Login Modal -->
+  <div id="login" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-body">
+          <form action="/login" method="post">
+           <input type="text" name="username" class="username form-control" placeholder="Username"/>
+            <input type="password" name="password" class="password form-control" placeholder="password"/>
+            <input class="btn login" type="submit" value="Login" />
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

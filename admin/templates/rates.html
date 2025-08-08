@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+  <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-90680653-2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+
+       <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+      <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>Colombus Capital</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link href="static/img/white.png" rel="icon">
+    <link href="static/img/apple-touch-icon.png" rel="apple-touch-icon">
+       <!-- vendor css -->
+    <link href="{{ url_for('admin_bp.static', filename='lib/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('admin_bp.static', filename='lib/ionicons/css/ionicons.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('admin_bp.static', filename='lib/typicons.font/typicons.css') }}" rel="stylesheet">
+    <link href="{{ url_for('admin_bp.static', filename='lib/flag-icon-css/css/flag-icon.min.css')}}" rel="stylesheet">
+
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="static/css/liverates.css">
+    <link rel="shortcut icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="static/css/live.css">
+    <link rel="stylesheet" href="static/css/icons.css">
+    <link rel="stylesheet" href="static/css/ui.css">
+      <!-- CSS -->
+      <link rel="stylesheet" href="{{ url_for('admin_bp.static', filename='css/azia.css') }}">
+</head>
+
+<body class="crypt-dark">
+    <div class="az-header">
+      <div class="container">
+        <div class="az-header-left">
+          <a href="{{ url_for('admin_bp.index') }}" class="az-logo"><img src="static/img/White.png" alt="CC"></a>
+          <a href="" id="azMenuShow" class="az-header-menu-icon d-lg-none"><span></span></a>
+        </div><!-- az-header-left -->
+        <div class="az-header-menu">
+          <div class="az-header-menu-header">
+            <a href="index.html" class="az-logo"><span></span></a>
+            <a href="" class="close">&times;</a>
+          </div><!-- az-header-menu-header -->
+          <ul class="nav">
+            <li class="nav-item">
+              <a href="{{ url_for('admin_bp.index') }}" class="nav-link"><i class="typcn typcn-chart-area-outline"></i> Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('admin_bp.sign') }}" class="nav-link"><i class="typcn typcn-chart-bar-outline"></i> Register</a>
+            </li>
+            <li class="nav-item active">
+              <a href="{{ url_for('admin_bp.rates') }}" class="nav-link"><i class="typcn typcn-chart-bar-outline"></i> Live Rates</a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('admin_bp.meetings') }}" class="nav-link"><i class="typcn typcn-book"></i> Meetings</a>
+            </li>
+          </ul>
+        </div><!-- az-header-menu -->
+        <div class="az-header-right">
+          <div class="az-header-message">
+            <a href="#"><i class="typcn typcn-messages" style="color: #fff;"></i></a>
+          </div><!-- az-header-message -->
+          <div class="dropdown az-header-notification">
+            <a href="" class="new"><i class="typcn typcn-bell" style="color: #fff;" ></i></a>
+            <div class="dropdown-menu">
+              <div class="az-dropdown-header mg-b-20 d-sm-none">
+                <a href="" class="az-header-arrow"><i class="icon ion-md-arrow-back" ></i></a>
+              </div>
+              <h6 class="az-notification-title">Notifications</h6>
+              <p class="az-notification-text">You have 2 unread notification</p>
+              <div class="az-notification-list">
+                <div class="media new">
+                  <div class="media-body">
+                    <p>Congratulate <strong>Socrates Itumay</strong> for work anniversaries</p>
+                    <span>Mar 15 12:32pm</span>
+                  </div><!-- media-body -->
+                </div><!-- media -->
+                <div class="media new">
+                  <div class="media-body">
+                    <p><strong>Joyce Chua</strong> just created a new blog post</p>
+                    <span>Mar 13 04:16am</span>
+                  </div><!-- media-body -->
+                </div><!-- media -->
+                <div class="media">
+                  <div class="media-body">
+                    <p><strong>Althea Cabardo</strong> just created a new blog post</p>
+                    <span>Mar 13 02:56am</span>
+                  </div>
+                </div>
+                <div class="media">
+                  <div class="media-body">
+                    <p><strong>Adrian Monino</strong> added new comment on your photo</p>
+                    <span>Mar 12 10:40pm</span>
+                  </div><!-- media-body -->
+                </div><!-- media -->
+              </div><!-- notification-list -->
+              <div class="dropdown-footer"><a href="">View All Notifications</a></div>
+            </div><!-- dropdown-menu -->
+          </div><!-- header-notification -->
+          <div class="dropdown az-profile-menu">
+            <a href="" class="az-img-user"><img src="static/img/faces/face1.jpg" alt=""></a>
+            <div class="dropdown-menu">
+              <div class="az-dropdown-header d-sm-none">
+                <a href="" class="az-header-arrow"><i class="icon ion-md-arrow-back"></i></a>
+              </div>
+              <div class="az-header-profile">
+                <div class="az-img-user">
+                  <img src="static/img/faces/face1.jpg" alt="">
+                </div>
+                <h6>Takwa Karoud</h6>
+                <span>Engine</span>
+              </div>
+              <a href="" class="dropdown-item"><i class="typcn typcn-user-outline"></i> My Profile</a>
+              <a href="" class="dropdown-item"><i class="typcn typcn-time"></i> Activity Logs</a>
+              <a href="/admin/out" class="dropdown-item"><i class="typcn typcn-power-outline"></i> Sign Out</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row sm-gutters">
+            <div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-3 col-xxl-2" style="border-radius: 5px;">
+                <div class="crypt-market-status mt-4" style="border-radius: 5px;">
+                    <div>
+                        <ul class="nav nav-tabs" id="crypt-tab" style="border-radius: 8px;">
+                            <li role="presentation"><a href="#usd" class="active" data-toggle="tab" data-currency="USD">USD</a></li>
+                            <li role="presentation"><a href="#eur" data-toggle="tab" data-currency="EUR">EUR</a></li>
+                            <li role="presentation"><a href="#jpy" data-toggle="tab" data-currency="JPY">JPY</a></li>
+                        </ul>
+                        <div class="tab-content crypt-tab-content">
+                            <div role="tabpanel" class="tab-pane active mb-4" id="usd">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col"  style="font-weight: 900;">Source</th>
+                                            <th scope="col" style="font-weight: 900;">Live Rate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="crypt-table-hover">
+                                        <!-- Dynamic content goes here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="eur">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col"  style="font-weight: 900;">Source</th>
+                                            <th scope="col" style="font-weight: 900;">Live Rate</th>
+                                        </tr>
+                                    </thead>
+                                        <tbody class="crypt-table-hover">
+                                            <!-- Dynamic content goes here -->
+                                        </tbody>
+                                </table>
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="jpy">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col"  style="font-weight: 900;">Source</th>
+                                            <th scope="col" style="font-weight: 900;">Live Rate</th>
+                                        </tr>
+                                    </thead>
+                                        <tbody class="crypt-table-hover">
+                                            <!-- Dynamic content goes here -->
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 col-lg-6 col-xl-6 col-xxl-8">
+                <div class="crypt-gross-market-cap mt-4" style="border-radius: 8px;">
+                    <div class="row">
+                    <div class="col-3 col-sm-6 col-md-6 col-lg-6">
+                        <div class="row">
+                            <div class="col-sm-6 col-md-6 col-lg-6">
+                                <p>Aggregated</p>
+                                <p id="aggregatedRate">...</p>
+                            </div>
+                            <div class="col-sm-6 col-md-6 col-lg-6">
+                                <p>Volatility</p>
+                                <p id="change24h" class="crypt-down">...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3 col-sm-2 col-md-3 col-lg-2" style="margin-left: 50px;">
+                        <p>24 High</p>
+                        <p id="high24h" class="crypt-up">...</p>
+                    </div>
+                    <div class="col-3 col-sm-2 col-md-3 col-lg-2"style="margin-left: 50px;">
+                        <p>24 Low</p>
+                        <p id="low24h" class="crypt-down">...</p>
+                    </div>
+                    </div>
+                </div>
+                <div style="height: 800px;">
+                    <div id="crypt-candle-chart" style="height: 500px;"></div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-6 col-xl-3 col-xxl-2">
+                <div class="crypt-market-status mt-4" style="border-radius: 8px;">
+                    <div>
+                        <ul class="nav nav-tabs" style="border-radius: 8px;">
+                            <li role="presentation"><a href="#USD_insights" class="active" data-toggle="tab">USD</a></li>
+                            <li role="presentation"><a href="#EUR_insights" data-toggle="tab">EUR</a></li>
+                            <li role="presentation"><a href="#JPY_insights" data-toggle="tab">JPY</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="USD_insights">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" style="font-weight: 900;">Insights</th>
+                                            <th scope="col" style="font-weight: 900;">Last Price</th>
+                                            <th scope="col" style="font-weight: 900;">Change</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                                <h6 class="text-center pt-2 pt-2" style="color:#071C42; font-weight:800;">Major Currency Pairs</h6>
+                                <table class="table table-striped">
+                                    <tbody>
+                                        <tr>
+                                            <td style="color:#071C42; font-weight:800;">EUR/USD</td>
+                                            <td id="rate-EURUSD-table1">...</td>
+                                            <td id="change-EURUSD-table1">...</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#071C42; font-weight:800;">USD/JPY</td>
+                                            <td id="rate-USDJPY-table1">...</td>
+                                            <td id="change-USDJPY-table1">...</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#071C42; font-weight:800;">GBP/USD</td>
+                                            <td id="rate-GBPUSD-table1">...</td>
+                                            <td id="change-GBPUSD-table1">...</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#071C42; font-weight:800;">USD/CHF</td>
+                                            <td id="rate-USDCHF-table1">...</td>
+                                            <td id="change-USDCHF-table1">...</td>
+                                        </tr>
+                                    </tbody>
+                                        </table>
+                                        <h6 class="text-center pt-2 pt-2" style="color:#071C42; font-weight:800;">Commodity Prices</h6>
+                                        <table class="table table-striped">
+                                            <tbody>
+                                        <tr>
+                                                <td style="color:#071C42; font-weight:800;">Gold (XAU/USD)</td>
+                                                <td>2.033,04</td>
+                                                <td class="crypt-up">+1,59 (+0,08%)</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#071C42; font-weight:800;">Crude Oil (WTI/Brent)</td>
+                                            <td>77.59</td>
+                                            <td class="crypt-up">+0.01%</td>
+                                        </tr>
+                                    </tbody>
+                                        </table>
+                                        <h6 class="text-center pt-2 pt-2" style="color:#071C42; font-weight:800;">Market Indices</h6>
+                                        <table class="table table-striped">
+                                                <tbody>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">S&P 500</td>
+                                                <td>5069,53</td>
+                                                <td class="crypt-down">−19,27 (0,38 %)</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">DXY</td>
+                                                <td>103.80</td>
+                                                <td class="crypt-down">-0.06 -0.06%</td>
+                                            </tr>
+                                        </tbody>
+                                        </table>
+                                    </div>
+
+
+                                <div role="tabpanel" class="tab-pane" id="EUR_insights">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" style="font-weight: 900;">Insights</th>
+                                                <th scope="col" style="font-weight: 900;">Last Price</th>
+                                                <th scope="col" style="font-weight: 900;">Change</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                    <h6 class="text-center pt-2 pt-2" style="color:#071C42; font-weight:800;">Major Currency Pairs</h6>
+                                    <table class="table table-striped">
+                                        <tbody>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">EUR/USD</td>
+                                                <td id="rate-EURUSD-table2">...</td>
+                                                <td id="change-EURUSD-table2">...0</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">EUR/JPY</td>
+                                                <td id="rate-EURJPY-table2">...</td>
+                                                <td id="change-EURJPY-table2">...</td>
+                                            </tr>
+                                        </tbody>
+                                            </table>
+                                            <h6 class="text-center pt-2 pt-2" style="color:#071C42; font-weight:800;">Commodity Prices</h6>
+                                            <table class="table table-striped">
+                                                <tbody>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">Gold (XAU/USD)</td>
+                                                <td>2.033,04</td>
+                                                <td class="crypt-up">+1,59 (+0,08%)</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">Crude Oil (WTI/Brent)</td>
+                                                <td>77.59</td>
+                                                <td class="crypt-up">+0.01%</td>
+                                            </tr>
+                                        </tbody>
+                                            </table>
+                                            <h6 class="text-center pt-2 pt-2" style="color:#071C42; font-weight:800;">Market Indices</h6>
+                                            <table class="table table-striped">
+                                                    <tbody>
+                                                <tr>
+                                                    <td style="color:#071C42; font-weight:800;">EUVIX</td>
+                                                    <td>7.11</td>
+                                                    <td class="crypt-down">−0.25 −3.40%</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color:#071C42; font-weight:800;">EMBI</td>
+                                                    <td>0.0000564</td>
+                                                    <td>6.6768876</td>
+                                                </tr>
+                                            </tbody>
+                                            </table>
+                                </div>
+
+
+                                <div role="tabpanel" class="tab-pane" id="JPY_insights">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" style="font-weight: 900;">Insights</th>
+                                                <th scope="col" style="font-weight: 900;">Last Price</th>
+                                                <th scope="col" style="font-weight: 900;">Change</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                    <h6 class="text-center pt-2 pt-2" style="color:#071C42; font-weight:800;">Major Currency Pairs</h6>
+                                    <table class="table table-striped">
+                                        <tbody>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">USD/JPY</td>
+                                                <td id="rate-USDJPY-table3">...</td>
+                                                <td id="change-USDJPY-table3">...</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">EUR/JPY</td>
+                                                <td id="rate-EURJPY-table3">...</td>
+                                                <td id="change-EURJPY-table3">...</td>
+                                            </tr>
+                                        </tbody>
+                                            </table>
+                                            <h6 class="text-center pt-2 pt-2" style="color:#071C42; font-weight:800;">Commodity Prices</h6>
+                                            <table class="table table-striped">
+                                                <tbody>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">Gold (XAU/USD)</td>
+                                                <td>2.033,04</td>
+                                                <td class="crypt-up">+1,59 (+0,08%)</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color:#071C42; font-weight:800;">Crude Oil (WTI/Brent)</td>
+                                                <td>77.59</td>
+                                                <td class="crypt-up">+0.01%</td>
+                                            </tr>
+                                        </tbody>
+                                            </table>
+                                            <h6 class="text-center pt-2 pt-2" style="color:#071C42; font-weight:800;">Market Indices</h6>
+                                            <table class="table table-striped">
+                                                    <tbody>
+                                                <tr>
+                                                    <td style="color:#071C42; font-weight:800;">JYVIX</td>
+                                                    <td>7.21</td>
+                                                    <td class="crypt-down">−0.37 −4.88%</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color:#071C42; font-weight:800;">Nikkei 225</td>
+                                                    <td>39331,36</td>
+                                                    <td class="crypt-up">+97,65 (0,25 %)</td>
+                                                </tr>
+                                            </tbody>
+                                            </table>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="az-footer ht-40" style="margin-top: 0px;">
+      <div class="container ht-100p pd-t-0-f">
+        <span class="text-muted d-block text-center text-sm-center d-sm-inline-block">Copyright © ColombusCapital.com 2024</span>
+      </div><!-- container -->
+    </div><!-- az-footer -->
+	<script src="https://s3.tradingview.com/tv.js"></script>
+    <script src="static/js/bundle.js"></script>
+      <script src="{{ url_for('admin_bp.static', filename='lib/jquery/jquery.min.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/ionicons/ionicons.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/jquery.flot/jquery.flot.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/jquery.flot/jquery.flot.resize.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/chart.js/Chart.bundle.min.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/peity/jquery.peity.min.js') }}"></script>
+
+  <script src="{{ url_for('admin_bp.static', filename='js/azia.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='js/chart.flot.sampledata.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='js/dashboard.sampledata.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='js/jquery.cookie.js') }}"></script>
+    <!-- At the end of your body tag, include the libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.0.0-rc.7/html2canvas.min.js"></script>
+
+<script type="text/javascript">
+ var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+socket.on('rates_update', function(data) {
+    console.log('Socket data:', data); // Debug: see the data structure
+    updateRatesTable(data.currency, data.rates);
+    updateMetrics(data.currency, data.metrics);
+});
+
+function fetchAndUpdateData(currency = 'USD') { // Default to USD if no currency specified
+    console.log(`Fetching data for currency: ${currency}`); // Debug: Log the currency being fetched
+    fetch(`/live-rates?currency=${currency}`) // Pass currency to the backend
+        .then(response => response.json())
+        .then(data => {
+            console.log('Fetched data:', data); // Debug: see the data structure
+            updateRatesTable(data.currency, data.rates);
+            updateMetrics(data.currency, data.metrics);
+        })
+        .catch(error => console.error('Error fetching data:', error));
+}
+
+function updateRatesTable(currency, rates) {
+    const tabMap = {'USD': 'usd', 'EUR': 'eur', 'JPY': 'jpy'};
+    const tabId = tabMap[currency];
+    if (tabId) {
+        const tableBody = document.querySelector(`#${tabId} .crypt-table-hover`);
+        if (tableBody) {
+            tableBody.innerHTML = /* HTML */ `
+                <tr>
+                    <td class="align-middle"><img class="crypt-star pr-1" alt="star" src="static/img/xe.png" width="70"></td>
+                    <td class="align-middle"><span class="pr-2">${rates['XE']}</span></td>
+                </tr>
+                <tr>
+                    <td class="align-middle"><img class="crypt-star pr-1" alt="star" src="static/img/wise.png" width="70"></td>
+                    <td class="align-middle"><span class="pr-2">${rates['WISE']}</span></td>
+                </tr>
+                <tr>
+                    <td class="align-middle"><img class="crypt-star pr-1" alt="star" src="static/img/yahoo.png" width="70"></td>
+                    <td class="align-middle"><span class="pr-2">${rates['YahooFinance']}</span></td>
+                </tr>
+            `;
+        }
+    }
+}
+
+function updateMetrics(currency, metrics) {
+    // Assuming 'metrics' includes 'Average', 'Volatility', 'High', 'Low'
+    const tabMap = {'USD': 'usd', 'EUR': 'eur', 'JPY': 'jpy'};
+    const tabId = tabMap[currency];
+    if (tabId && metrics) {
+        const aggregatedRateElement = document.querySelector("#aggregatedRate");
+        const change24hElement = document.querySelector("#change24h");
+        const highElement = document.querySelector("#high24h");
+        const lowElement = document.querySelector("#low24h");
+
+        aggregatedRateElement.innerText = metrics.Average.toFixed(4);
+        change24hElement.innerText = metrics.Volatility;
+        highElement.innerText = metrics.High;
+        lowElement.innerText = metrics.Low;
+    }
+}
+
+document.querySelectorAll('#crypt-tab a[data-currency]').forEach(tab => {
+    tab.addEventListener('click', function(e) {
+        const currency = this.getAttribute('data-currency');
+        console.log(`Tab selected for currency: ${currency}`); // Debug: Log the selected currency
+        fetchAndUpdateData(currency);
+    });
+});
+
+// Initial call and setup refresh interval
+document.addEventListener('DOMContentLoaded', function() {
+    fetchAndUpdateData(); // Ensure this is triggered without waiting for user interaction
+});
+</script>
+    <script>
+function updateCurrencyRates() {
+    fetch('/live-rates') // Adjust the URL as needed
+        .then(response => response.json())
+        .then(data => {
+            Object.entries(data.rates_all).forEach(([pair, details]) => {
+                // Construct IDs with table identifiers
+                const rateCellIdTable1 = `rate-${pair.replace('/', '')}-table1`;
+                const changeCellIdTable1 = `change-${pair.replace('/', '')}-table1`;
+                const rateCellIdTable2 = `rate-${pair.replace('/', '')}-table2`;
+                const changeCellIdTable2 = `change-${pair.replace('/', '')}-table2`;
+                const rateCellIdTable3 = `rate-${pair.replace('/', '')}-table3`;
+                const changeCellIdTable3 = `change-${pair.replace('/', '')}-table3`;
+
+                // Update Table 1
+                const rateCellTable1 = document.getElementById(rateCellIdTable1);
+                const changeCellTable1 = document.getElementById(changeCellIdTable1);
+                if (rateCellTable1) rateCellTable1.innerHTML = details.rate;
+                if (changeCellTable1) changeCellTable1.innerHTML = details.change;
+
+                // Update Table 2
+                const rateCellTable2 = document.getElementById(rateCellIdTable2);
+                const changeCellTable2 = document.getElementById(changeCellIdTable2);
+                if (rateCellTable2) rateCellTable2.innerHTML = details.rate;
+                if (changeCellTable2) changeCellTable2.innerHTML = details.change;
+
+                // Update Table 3
+                const rateCellTable3 = document.getElementById(rateCellIdTable3);
+                const changeCellTable3 = document.getElementById(changeCellIdTable3);
+                if (rateCellTable3) rateCellTable3.innerHTML = details.rate;
+                if (changeCellTable3) changeCellTable3.innerHTML = details.change;
+            });
+        })
+        .catch(error => console.error('Error fetching currency rates:', error));
+}
+
+// Initial call and setup refresh interval
+document.addEventListener('DOMContentLoaded', updateCurrencyRates);
+setInterval(updateCurrencyRates, 30000);
+</script>
+  <script>
+    $('#myTab a').on('click', function (e) {
+      e.preventDefault()
+      $(this).tab('show')
+    })
+  </script>
+</body>
+</html>

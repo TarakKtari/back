@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-90680653-2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+     <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+      <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>Colombus Capital</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link href="static/img/white.png" rel="icon">
+    <link href="static/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- vendor css -->
+    <link href="{{ url_for('admin_bp.static', filename='lib/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('admin_bp.static', filename='lib/ionicons/css/ionicons.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('admin_bp.static', filename='lib/typicons.font/typicons.css') }}" rel="stylesheet">
+    <link href="{{ url_for('admin_bp.static', filename='lib/flag-icon-css/css/flag-icon.min.css')}}" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('admin_bp.static', filename='css/azia.css') }}">
+    <link rel="stylesheet" href="{{ url_for('admin_bp.static', filename='css/calendar.css') }}">
+
+  </head>
+  <body>
+    <div class="az-header">
+      <div class="container">
+        <div class="az-header-left">
+          <a href="{{ url_for('admin_bp.index') }}" class="az-logo"><img src="static/img/White.png" alt="CC"></a>
+          <a href="" id="azMenuShow" class="az-header-menu-icon d-lg-none"><span></span></a>
+        </div><!-- az-header-left -->
+        <div class="az-header-menu">
+          <div class="az-header-menu-header">
+            <a href="{{ url_for('admin_bp.index') }}" class="az-logo"><span></span></a>
+            <a href="" class="close">&times;</a>
+          </div><!-- az-header-menu-header -->
+          <ul class="nav">
+            <li class="nav-item">
+              <a href="{{ url_for('admin_bp.index') }}" class="nav-link"><i class="typcn typcn-chart-area-outline"></i> Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('admin_bp.sign') }}" class="nav-link"><i class="typcn typcn-chart-bar-outline"></i> Register</a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('admin_bp.rates') }}" class="nav-link"><i class="typcn typcn-chart-bar-outline"></i> Live Rates</a>
+            </li>
+            <li class="nav-item  active">
+              <a href="{{ url_for('admin_bp.meetings') }}" class="nav-link with-sub"><i class="typcn typcn-book"></i> Meetings</a>
+            </li>
+          </ul>
+        </div><!-- az-header-menu -->
+        <div class="az-header-right">
+          <div class="az-header-message">
+            <a href="#"><i class="typcn typcn-messages" style="color: #fff;"></i></a>
+          </div><!-- az-header-message -->
+          <div class="dropdown az-header-notification">
+            <a href="" class="new"><i class="typcn typcn-bell" style="color: #fff;" ></i></a>
+            <div class="dropdown-menu">
+              <div class="az-dropdown-header mg-b-20 d-sm-none">
+                <a href="" class="az-header-arrow"><i class="icon ion-md-arrow-back" ></i></a>
+              </div>
+              <h6 class="az-notification-title">Notifications</h6>
+              <p class="az-notification-text">You have 2 unread notification</p>
+              <div class="az-notification-list">
+              </div><!-- notification-list -->
+              <div class="dropdown-footer"><a href="">View All Notifications</a></div>
+            </div><!-- dropdown-menu -->
+          </div><!-- header-notification -->
+          <div class="dropdown az-profile-menu">
+            <a href="" class="az-img-user"><img src="static/img/faces/face1.jpg" alt=""></a>
+            <div class="dropdown-menu">
+              <div class="az-dropdown-header d-sm-none">
+                <a href="" class="az-header-arrow"><i class="icon ion-md-arrow-back"></i></a>
+              </div>
+              <div class="az-header-profile">
+                <div class="az-img-user">
+                  <img src="static/img/faces/face1.jpg" alt="">
+                </div>
+                <h6>Takwa Karoud</h6>
+                <span>Engine</span>
+              </div>
+
+              <a href="" class="dropdown-item"><i class="typcn typcn-user-outline"></i> My Profile</a>
+              <a href="" class="dropdown-item"><i class="typcn typcn-time"></i> Activity Logs</a>
+              <a href="/admin/out" class="dropdown-item"><i class="typcn typcn-power-outline"></i> Sign Out</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+   <div class="az-content az-content-dashboard navigation-links">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="/admin/{{ prev_year }}/{{ prev_month }}" class="arrow-link" style="font-size:35px; color: #071C42; padding-left: 420px; padding-top: 15px;"><i class="fas fa-chevron-left"></i></a>
+            <h1>{{ month }} {{ year }}</h1>
+            <a href="/admin/{{ next_year }}/{{ next_month }}" class="arrow-link" style="font-size:35px; color: #071C42; padding-right: 420px; padding-top: 15px;"><i class="fas fa-chevron-right"></i></a>
+        </div>
+        <div style="padding-left: 540px; font-weight: 530;">
+            <p >Meetings in {{ month }}</p>
+        </div>
+        <ul>
+            {% for day in month_days %}
+                <li class="li_body">
+                    <time datetime="{{ year }}-{{ '%02d' % month_num }}-{{ '%02d' % day.day }}">{{ day.day }}</time>
+                    {% if day.meetings %}
+                        {% for meeting in day.meetings %}
+                            <div>
+                                <strong>Meeting</strong> with {{ meeting['Company Name'] }} at {{ meeting['Time'] }}<br>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="az-footer ht-40" style="background-color: transparent; color: #071C42;">
+      <div class="container ht-100p pd-t-0-f" style="background-color: transparent; color: #071C42;">
+        <span class="d-block text-center text-sm-center d-sm-inline-block" style="background-color: transparent; color: #071C42;">Copyright © ColombusCapital.com 2024</span>
+      </div><!-- container -->
+    </div><!-- az-footer -->
+
+
+    <!-- Vendor JS Files -->
+  <script src="{{ url_for('admin_bp.static', filename='lib/jquery/jquery.min.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/ionicons/ionicons.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/jquery.flot/jquery.flot.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/jquery.flot/jquery.flot.resize.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/chart.js/Chart.bundle.min.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/peity/jquery.peity.min.js') }}"></script>
+
+  <script src="{{ url_for('admin_bp.static', filename='js/azia.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='js/chart.flot.sampledata.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='js/dashboard.sampledata.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='js/jquery.cookie.js') }}"></script>
+    <!-- At the end of your body tag, include the libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.0.0-rc.7/html2canvas.min.js"></script>
+
+    <script>
+    $('#myTab a').on('click', function (e) {
+      e.preventDefault()
+      $(this).tab('show')
+    })
+  </script>
+
+  </body>
+</html>

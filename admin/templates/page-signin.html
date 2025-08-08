@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-90680653-2"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+      rel="stylesheet"
+    />
+
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+
+    <title>Colombus Capital</title>
+    <meta content="" name="description" />
+    <meta content="" name="keywords" />
+
+    <!-- Favicons -->
+    <link href="static/img/white.png" rel="icon" />
+    <link href="static/img/apple-touch-icon.png" rel="apple-touch-icon" />
+
+    <!-- vendor css -->
+    <link
+      href="{{ url_for('admin_bp.static', filename='lib/fontawesome-free/css/all.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('admin_bp.static', filename='lib/ionicons/css/ionicons.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('admin_bp.static', filename='lib/typicons.font/typicons.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('admin_bp.static', filename='lib/flag-icon-css/css/flag-icon.min.css')}}"
+      rel="stylesheet"
+    />
+
+    <!-- CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('admin_bp.static', filename='css/azia.css') }}"
+    />
+  </head>
+  <body>
+    <div class="az-signup-wrapper">
+      <div class="az-column-signup-left">
+        <div>
+          <a href="index.html"
+            ><img
+              src="static/img/CC_Original.svg"
+              style="width: 200px; margin-bottom: -40px; margin-left: -30px"
+              alt="CC"
+          /></a>
+          <h5 style="font-weight: 700">Your Portal to Influence</h5>
+          <p>
+            Step into the hub of innovation where your expertise fuels our
+            journey towards excellence. This portal is your gateway to sculpting
+            the future of our enterprise, armed with advanced tools and
+            exclusive insights. Engage, empower, and elevate our collective
+            vision. Together, we craft tomorrow.
+          </p>
+        </div>
+      </div>
+      <!-- az-column-signup-left -->
+      <div class="az-column-signup">
+        <h1 class="az-logo" style="width: 50px"></h1>
+        <div class="az-signup-header">
+          {% if current_user.is_authenticated %} You are already logged in.
+
+          <!-- Show if user is NOT logged in -->
+          {% else %}
+          <!-- msg that was passed while rendering template -->
+          {{ msg }}<br />
+          <h2>Get Started</h2>
+          <p>
+            Please keep your credentials secure and confidential to maintain the
+            integrity of our shared digital workspace.
+          </p>
+
+          <form action="/admin/signin" method="post">
+            <div class="form-group" style="margin-top: 70px">
+              <label for="username">User Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="username"
+                name="username"
+                placeholder="Enter a username"
+                required
+              />
+            </div>
+            <!-- form-group -->
+            <div class="form-group" style="margin-top: 40px">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+            <!-- form-group -->
+            <button
+              class="btn btn-az-primary btn-block"
+              type="submit"
+              style="margin-top: 10px; margin-bottom: 5px; margin-bottom: 180px"
+            >
+              Login
+            </button>
+          </form>
+          {% endif %}
+        </div>
+        <!-- az-signup-header -->
+      </div>
+      <!-- az-column-signup -->
+    </div>
+    <!-- az-signup-wrapper -->
+
+    <div class="az-footer ht-40">
+      <div class="container ht-100p pd-t-0-f">
+        <span
+          class="text-muted d-block text-center text-sm-center d-sm-inline-block"
+          >Copyright © ColombusCapital.com 2024</span
+        >
+      </div>
+      <!-- container -->
+    </div>
+    <!-- az-footer -->
+
+    <script src="../lib/jquery/jquery.min.js"></script>
+    <script src="../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../lib/ionicons/ionicons.js"></script>
+    <script src="../js/jquery.cookie.js" type="text/javascript"></script>
+
+    <script src="../js/azia.js"></script>
+  </body>
+</html>

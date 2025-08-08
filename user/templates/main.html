@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Colombus Capital</title>
+
+  <!-- Replace with your favicon link -->
+<link href="{{ url_for('user_bp.static', filename='img/white.png')}}" rel="icon">
+  <link href="{{ url_for('user_bp.static', filename='img/apple-touch-icon.png')}}" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <!-- Vendor CSS Files -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Vendor CSS Files -->
+  <link href="{{ url_for('user_bp.static', filename='vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}"rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/boxicons/css/boxicons.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/glightbox/css/glightbox.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/remixicon/remixicon.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.css')}}" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link rel="stylesheet" href="{{ url_for('user_bp.static', filename='css/main.css') }}">
+    <!-- Include Chart.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', {'packages':['treemap']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Asset Type');
+        data.addColumn('string', 'Parent');
+        data.addColumn('number', 'Total FX Amount');
+        data.addColumn('number', 'FX Amount Label');  // This column is for labeling purposes
+
+        // Root node
+        data.addRows([
+            ['All Assets', null, 0, 0],  // Root node has no parent
+        ]);
+
+        // Adding data - ensure numbers are parsed correctly
+        {% for item in exposure_by_asset %}
+        data.addRows([
+            ['{{ item["Asset Type"] }}', 'All Assets', parseFloat('{{ item["FX Amount"].replace('$', '').replace(',', '') }}'), parseFloat('{{ item["FX Amount"].replace('$', '').replace(',', '') }}')],
+        ]);
+        {% endfor %}
+
+        var tree = new google.visualization.TreeMap(document.getElementById('chart_div'));
+
+        tree.draw(data, {
+            minColor: '#009DE6',
+            midColor: '#0082D3',
+            maxColor: '#0D1867',
+            headerHeight: 20,
+            fontColor: 'black',
+            showScale: false,
+            textStyle: {
+                fontSize: 16, // Adjust font size to make sure the text is readable
+                color: '#fff'  // Set text color to white for better visibility
+            }
+        });
+    }
+</script>
+    <style>
+        canvas {
+          -moz-user-select: none;
+          -webkit-user-select: none;
+          -ms-user-select: none;
+        }
+    </style>
+    <style>
+    input[type="file"] {
+      outline: none;
+      padding: 4px;
+      margin: -4px;
+      position: relative;
+    }
+
+    input[type="file"]::file-selector-button {
+      width: 136px;
+      color: transparent;
+      border-radius: 7px;
+      padding: 0 16px;
+      height: 30px;
+      cursor: pointer;
+      background-color: white;
+      border: 2px solid #f3f4f6;
+      box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+      margin-right: 0 16px;
+      transition: background-color 200ms;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background-color: #f3f4f6;
+    }
+
+    input[type="file"]::file-selector-button:active {
+      background-color: #e5e7eb;
+    }
+
+    input[type="file"]::before {
+      content: "Upload File";
+      position: absolute;
+      pointer-events: none;
+      left: 40px;
+      margin-top: 5px;
+      color: #020838;
+    }
+
+    input[type="file"]::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      left: 16px;
+      margin-top: 5px;
+      height: 20px;
+      width: 20px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230964B0'%3E%3Cpath d='M18 15v3H6v-3H4v3c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-3h-2zM7 9l1.41 1.41L11 7.83V16h2V7.83l2.59 2.58L17 9l-5-5-5 5z'/%3E%3C/svg%3E");
+    }
+
+    input[type="file"]:focus-within::file-selector-button,
+    input[type="file"]:focus::file-selector-button {
+      outline: 2px solid #020838;
+      outline-offset: 2px;
+    }
+
+     .file-upload-btn {
+    border-radius: 7px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: #CBD1DB;
+    color: #020838;
+    border: none;
+    height: 30px;
+    width: 80px;
+    transition: background-color 200ms;
+    padding: 0 16px;
+    margin-right: 0 16px;
+  }
+
+  .file-upload-btn:hover {
+    background-color: #020838;
+    color: #CBD1DB;
+  }
+
+  .file-upload-btn:active {
+    background-color: #CBD1DB;
+  }
+
+  .template-download-link {
+  color:#020838;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+  </style>
+
+      <script type="text/javascript">
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const error = params.get('error');
+            if (error) {
+                // Display the error message as an alert or inject it into the page
+                alert(error); // Simple alert, replace with your preferred method
+            }
+        };
+    </script>
+</head>
+<body>
+  <!-- Header Section -->
+  <header id="header" class="fixed-top header-inner-pages">
+    <div class="container d-flex align-items-center">
+      <a href="{{ url_for('user_bp.home') }}" class="logo me-auto"><img src="{{ url_for('user_bp.static', filename='img/white.png')}}" class="img-fluid" alt="CC"></a>
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto active" href="{{ url_for('user_bp.main') }}">Main</a></li>
+          <li><a class="nav-link scrollto active" href="{{ url_for('user_bp.dashboard') }}">Dashboard</a></li>
+          <li><a class="nav-link scrollto" href="{{ url_for('user_bp.bank') }}">Bank Accounts</a></li>
+          <li><a class="nav-link scrollto" href="{{ url_for('user_bp.order') }}">Order</a></li>
+          <li><button type="button" class="getstarted scrollto" id="logoutButton" style="color: #071C42;background: #F3F5FA; font-family: 'Jost' font-weight: 800;">Logout</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main content of your page here -->
+  <div class="bg-gray-100" style="padding-bottom: 50px; padding-top: 100px;">
+        <div id="app" class="container mx-auto mt-5">
+
+            <!-- Upload Form -->
+            <div style="position: absolute; top: 100px; right: 100px;">
+              <form action="/upload" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".xlsx" required>
+                <input type="submit" value="Upload" style="display: none;"> <!-- Hide the default submit button -->
+                <!-- Custom styled button for submitting the form -->
+                <button type="submit" class="file-upload-btn">Send</button>
+                  <a href="/download-template" class="template-download-link">Need a template?</a>
+              </form>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-6 gap-4 mb-4 " style="background-color: none;">
+                <div class="card shadow rounded-lg">
+                    <p class="text-xl font-semibold">{{ metrics['total_traded'] }}</p>
+                    <span class="text-gray-600">Total Traded</span>
+                </div>
+
+                <div class="card shadow rounded-lg">
+                    <p class="text-xl font-semibold">{{ metrics['average_size'] }}</p>
+                    <span class="text-gray-600">Average Size</span>
+                </div>
+
+                <div class="card shadow rounded-lg">
+                    <p class="text-xl font-semibold">{{ metrics['gross_var'] | round(2) }}</p>
+                    <span class="text-gray-600">Gross VaR</span>
+                </div>
+
+                <div class="card shadow rounded-lg">
+                    <p class="text-xl font-semibold">{{ metrics['average_spread'] | round(2) }}%</p>
+                    <span class="text-gray-600">Average Spread</span>
+                </div>
+
+                <div class="card shadow rounded-lg">
+                    <p class="text-xl font-semibold">{{ metrics['hedge_ratio'] }}</p>
+                    <span class="text-gray-600">Hedge Ratio</span>
+                </div>
+
+                <div class="card shadow rounded-lg">
+                    <p class="text-xl font-semibold">{{ metrics['net_var'] | round(2) }}</p>
+                    <span class="text-gray-600">Net VaR</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 rounded shadow" style="background-color: #fff;">
+                <!-- Spot Rates -->
+                <div class="bg-white p-4"  style="background-color: #fff; border-radius: 5px;">
+                  <h2 style="margin-top: 50px; font-size: 20px; font-weight: 500; color: #333; text-align: center; margin-left:175px; margin-right:-100px; width: 200px;">Cost Breakdown</h2>
+                  <div class="container2">
+                      <!-- Total -->
+                    <div class="funnel">
+                        <div class="bar-label2">Total Cost</div>
+                        <div class="bar-container">
+                            <div class="bar2" style="width:100%;">${{ metrics['total_cost'] | round(2) }}</div>
+                        </div>
+                        <i class="fas fa-info-circle tooltip-icon"></i>
+                        <span class="tooltiptext">Total cost includes all charges.</span>
+                    </div>
+                    <!-- Spread -->
+                    <div class="funnel">
+                        <div class="bar-label2">Spread</div>
+                        <div class="bar-container">
+                            <div class="bar2" style="width: {{ metrics['spread_width'] | round }}%;">${{ metrics['spread_cost'] | round(2) }}</div>
+                        </div>
+                        <i class="fas fa-info-circle tooltip-icon"></i>
+                        <span class="tooltiptext">The slippage from the midmarket rate (the reference rate). This is the primary cost of executing the transaction that the bank charges the client</span>
+                    </div>
+
+                    <!-- Value Date Cost -->
+                    <div class="funnel">
+                        <div class="bar-label2">Value Date</div>
+                        <div class="bar-container">
+                            <div class="bar2" style="width: {{ metrics['value_date_cost_width']+30 | round }}%;">${{ metrics['value_date_cost'] | round(2) }}</div>
+                        </div>
+                        <i class="fas fa-info-circle tooltip-icon"></i>
+                        <span class="tooltiptext">This is the opportunity cost for the client and benefit for the bank due to the time gap between trade execution and settlement date. It's calculated using the prevailing risk-free rate, representing the return on investment for holding funds during this period.</span>
+                    </div>
+
+                    <!-- Fixed Costs -->
+                    <div class="funnel">
+                        <div class="bar-label2">Fixed Costs</div>
+                        <div class="bar-container">
+                            <div class="bar2" style="width: {{ metrics['fixed_costs_width']+10 | round }}%;">${{ metrics['fixed_cost'] | round(2) }}</div>
+                        </div>
+                        <i class="fas fa-info-circle tooltip-icon"></i>
+                        <span class="tooltiptext">Fixed costs refer to any additional fees or commissions charged by the bank</span>
+                    </div>
+
+                </div>
+                </div>
+                <!-- Graph -->
+                <div class="bg-white p-4 rounded-lg" style="width: 800px;">
+                    <!-- Graph placeholder -->
+                    <div class="graph-cont">
+                        <h2>Performance Analysis</h2>
+                        <canvas id="myChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 rounded shadow" style="background-color: #fff;">
+                <div class="bg-white p-4"  style="background-color: #fff; border-radius: 5px;margin-left:40px;margin-top:10px;width:500px;">
+                  <h2 style="margin-bottom: 10px;margin-left: -70px; font-size: 18px; font-weight: 500; color: #020838;text-align: center;">Average Spread per Bank</h2>
+                    <table style="width: 370px;">
+                        <tr>
+                            <th>Bank</th>
+                            <th style="width:200px; text-align: right;">Notional Executed</th>
+                            <th style="width:100px; text-align: right; padding-right: 8px;">Spread</th>
+                        </tr>
+                        {% for bank in bank_data %}
+                        <tr>
+                            <td>{{ bank['Bank'] }}</td>
+                            <td class="numeric">{{ bank['FX Amount'] }}</td>
+                            <td class="numeric">
+                                <div class="bar-value">{{ bank['Spread'] }}</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    <div style="background-color: #fff; border-radius: 5px;margin-right:40px;margin-top:20px;hight:500px;">
+                        <h2 style="margin-bottom: 10px;margin-left: -70px; font-size: 18px; font-weight: 500; color: #020838;text-align: center;">Exposure by Asset Type</h2>
+                        <div id="chart_div" style="width: 100%; height: 250px;"></div>
+                    </div>
+                </div>
+              <div class="bg-white p-4 rounded-lg" style="width: 630px; margin-left:140px;">
+                          <!-- Graph placeholder -->
+                          <div class="graph-cont">
+                              <h2>Performance Analysis</h2>
+                              <canvas id="hedgeChart"></canvas>
+                          </div>
+                      </div>
+              </div>
+      </div>
+  </div>
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-3 col-md-6 footer-contact">
+            <h3>Colombus Capital</h3>
+            <p>
+              Immeuble Tanit <br>
+              Rue d’Erable<br>
+              Lac II <br><br>
+              <strong>Phone:</strong> +216 53 789 000<br>
+              <strong>Email:</strong> contact@colombus-capital.com<br>
+            </p>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Useful Links</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.bct.gov.tn/bct/siteprod/documents/Reg_des_Chges_ao13.pdf">FX Regulation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.globalfxc.org/docs/fx_global.pdf">FX Global Code</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.cbf.org.tn/circulaires-et-notes-2/">Circular and Notes</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Services</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Transparent Pricing</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">FX Workflow Automation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Low Cost Execution</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Social Networks</h4>
+            <p>Keep connected on our social media</p>
+            <div class="social-links mt-3">
+              <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+              <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container footer-bottom clearfix">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Colombus Capital</span></strong>. All Rights Reserved
+      </div>
+    </div>
+  </footer><!-- End Footer -->
+
+  <div id="preloader"></div>
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const rawData = {{ data | tojson | safe }};
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: rawData.map(item => item.Month),
+            datasets: [{
+                label: 'Volume Traded',
+                data: rawData.map(item => item.Volume), // Ensure this key matches your data structure
+                backgroundColor: '#172063',
+                yAxisID: 'primaryYAxis',
+                order: 2
+            }, {
+                label: 'Average Execution Rate',
+                data: rawData.map(item => item['Execution rate']), // Corrected property access
+                borderColor: '#A4A4A5',
+                type: 'line',
+                fill: false,
+                yAxisID: 'secondaryYAxis',
+                order: 1
+            }, {
+                label: 'Average MidMarket Rate',
+                data: rawData.map(item => item['MidMarket']), // Corrected property access
+                borderColor: '#97bafc',
+                type: 'line',
+                fill: false,
+                yAxisID: 'secondaryYAxis'
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    display: true,
+                    grid: {
+                        display: false // Hide x-axis grid lines
+                    },
+                    title: {
+                        display: true,
+                        text: 'Months'
+                    }
+                },
+                primaryYAxis: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Volume Traded'
+                    },
+                    grid: {
+                        display: false // Hide primary y-axis grid lines
+                    }
+                },
+                secondaryYAxis: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Rate'
+                    },
+                    beginAtZero: false, // Adjusted to not start from zero
+                    suggestedMin: 3, // Start from 3
+                    grid: {
+                        display: false // Hide secondary y-axis grid lines
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+<script>
+  const ctx = document.getElementById('hedgeChart').getContext('2d');
+  const myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ["Jul 2016", "Oct 2016", "Jan 2017", "Apr 2017", "Jul 2017", "Oct 2017", "Jan 2018"],
+      datasets: [
+        {
+          label: 'Forwards Total',
+          backgroundColor: '#0069d9',
+          data: [2000000, 1500000, 1800000, 2300000, 2500000, 3000000, 3500000]
+        },
+        {
+          label: 'Put Options Total',
+          backgroundColor: '#007bff',
+          data: [1000000, 1200000, 1100000, 1400000, 1600000, 2000000, 2200000]
+        },
+        {
+          label: 'Collars (Calls) Options',
+          backgroundColor: '#0091ea',
+          data: [500000, 700000, 800000, 600000, 900000, 1100000, 1300000]
+        },
+        {
+          label: 'Unhedged Total',
+          backgroundColor: '#00b0ff',
+          data: [3000000, 2800000, 3200000, 2900000, 3500000, 4000000, 4500000]
+        }
+      ]
+    },
+    options: {
+      scales: {
+        x: {
+          stacked: true,
+        },
+        y: {
+          stacked: true
+        }
+      },
+      plugins: {
+        datalabels: {
+          display: true,
+          color: '#010101', // Font color
+          font: {
+            size: '12' // Font size
+          }
+        }
+      }
+    }
+  });
+</script>
+
+ <!-- Vendor JS Files -->
+  <script src="{{ url_for('user_bp.static', filename='vendor/aos/aos.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/waypoints/noframework.waypoints.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/php-email-form/validate.js') }}"></script>
+
+  <!-- Template Main JS File -->
+  <script src="{{ url_for('user_bp.static', filename='js/main.js') }}"></script>
+
+</body>
+</html>

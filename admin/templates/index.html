@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-90680653-2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
+
+     <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+      <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <title>Colombus Capital</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+
+    <!-- Favicons -->
+    <link href="static/img/white.png" rel="icon">
+    <link href="static/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- vendor css -->
+    <link href="{{ url_for('admin_bp.static', filename='lib/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('admin_bp.static', filename='lib/ionicons/css/ionicons.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('admin_bp.static', filename='lib/typicons.font/typicons.css') }}"rel="stylesheet">
+    <link href="{{ url_for('admin_bp.static', filename='lib/flag-icon-css/css/flag-icon.min.css')}}" rel="stylesheet">
+
+    <!-- CSS -->
+      <link rel="stylesheet" href="{{ url_for('admin_bp.static', filename='css/azia.css') }}">
+  </head>
+  <body>
+    <div class="az-header">
+      <div class="container">
+        <div class="az-header-left">
+          <a href="{{ url_for('admin_bp.index') }}" class="az-logo"><img src="static/img/White.png"alt="CC"></a>
+          <a href="" id="azMenuShow" class="az-header-menu-icon d-lg-none"><span></span></a>
+        </div><!-- az-header-left -->
+        <div class="az-header-menu">
+          <div class="az-header-menu-header">
+            <a href="{{ url_for('admin_bp.index') }}" class="az-logo"><span></span></a>
+            <a href="" class="close">&times;</a>
+          </div><!-- az-header-menu-header -->
+          <ul class="nav">
+            <li class="nav-item active">
+              <a href="{{ url_for('admin_bp.index') }}" class="nav-link"><i class="typcn typcn-chart-area-outline"></i> Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('admin_bp.sign') }}" class="nav-link"><i class="typcn typcn-chart-bar-outline"></i> Register</a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('admin_bp.rates') }}" class="nav-link"><i class="typcn typcn-chart-bar-outline"></i> Live Rates</a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('admin_bp.meetings') }}" class="nav-link"><i class="typcn typcn-book"></i> Meetings</a>
+            </li>
+          </ul>
+        </div><!-- az-header-menu -->
+        <div class="az-header-right">
+          <div class="az-header-message">
+            <a href="#"><i class="typcn typcn-messages" style="color: #fff;"></i></a>
+          </div><!-- az-header-message -->
+          <div class="dropdown az-header-notification">
+            <a href="" class="new"><i class="typcn typcn-bell" style="color: #fff;" ></i></a>
+            <div class="dropdown-menu">
+              <div class="az-dropdown-header mg-b-20 d-sm-none">
+                <a href="" class="az-header-arrow"><i class="icon ion-md-arrow-back" ></i></a>
+              </div>
+              <h6 class="az-notification-title">Notifications</h6>
+              <p class="az-notification-text">You have 2 unread notification</p>
+              <div class="az-notification-list">
+              </div><!-- notification-list -->
+              <div class="dropdown-footer"><a href="">View All Notifications</a></div>
+            </div><!-- dropdown-menu -->
+          </div><!-- header-notification -->
+          <div class="dropdown az-profile-menu">
+            <a href="" class="az-img-user"><img src="static/img/faces/face1.jpg" alt=""></a>
+            <div class="dropdown-menu">
+              <div class="az-dropdown-header d-sm-none">
+                <a href="" class="az-header-arrow"><i class="icon ion-md-arrow-back"></i></a>
+              </div>
+              <div class="az-header-profile">
+                <div class="az-img-user">
+                  <img src="static/img/faces/face1.jpg" alt="">
+                </div>
+                <h6>Takwa Karoud</h6>
+                <span>Engine</span>
+              </div>
+
+              <a href="" class="dropdown-item"><i class="typcn typcn-user-outline"></i> My Profile</a>
+              <a href="" class="dropdown-item"><i class="typcn typcn-time"></i> Activity Logs</a>
+              <a href="/admin/out" class="dropdown-item"><i class="typcn typcn-power-outline"></i> Sign Out</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="az-content az-content-dashboard">
+      <div class="container">
+        <div class="az-content-body">
+          <div class="az-dashboard-one-title">
+            <div>
+              <h1 class="az-dashboard-title">Peer Matching Analytics Dashboard</h1>
+              <p class="az-dashboard-text">Real-time insights for optimized currency management</p>
+            </div>
+            <div class="az-content-header-right">
+              <div class="media">
+                <div class="media-body ">
+                  <label>Last Update</label>
+                  <h6>Feb 14, 2024</h6>
+                </div><!-- media-body -->
+              </div><!-- media -->
+              <a href="" class="btn btn-purple">Export</a>
+            </div>
+          </div><!-- az-dashboard-one-title -->
+
+          <div class="az-dashboard-nav"> 
+            <nav class="nav nav-tabs" id="myTab" role="tablist">
+              <a class="nav-item nav-link active" id="matched-orders-tab" data-toggle="tab" href="#matched-orders" role="tab" aria-controls="matched-orders" aria-selected="true">Matched Orders</a>
+              <a class="nav-item nav-link" id="market-execution-tab" data-toggle="tab" href="#market-execution" role="tab" aria-controls="market-execution" aria-selected="false">Market Execution</a>
+              <a class="nav-item nav-link" id="new-orders-tab" data-toggle="tab" href="#new-orders" role="tab" aria-controls="new-orders" aria-selected="false">New Orders</a>
+            </nav>
+
+            <nav class="nav">
+              <a class="nav-link" onclick="downloadExcel()" href="#"><i class="far fa-save"></i> Save Excel</a>
+              <a class="nav-link" onclick="captureTabsAndExportPDF()" href="#" ><i class="far fa-file-pdf"></i> Export to PDF</a>
+              <a class="nav-link" href="#"><i class="far fa-envelope"></i>Send to Email</a>
+              <a class="nav-link" href="#"><i class="fas fa-ellipsis-h"></i></a>
+            </nav>
+          </div>
+
+          <div class="tab-content" id="myTabContent">
+          <div class="tab-pane fade show active" id="matched-orders" role="tabpanel" aria-labelledby="matched-orders-tab">
+          <div class="row row-sm mg-b-20" >
+            <div class="col-lg-7 ht-lg-100p">
+              <div class="card card-dashboard-one">
+                <div class="card-header">
+                  <div>
+                    <h6 class="card-title">Executive Summary</h6>
+                    <p class="card-text">Quick glance at the matched amounts for each value date</p>
+                  </div>
+                  <div class="btn-group">
+                      <a href="/admin/index?currency=EUR" class="btn currency-btn {{ 'active' if selected_currency == 'EUR' else '' }}">EUR</a>
+                      <a href="/admin/index?currency=USD" class="btn currency-btn {{ 'active' if selected_currency == 'USD' else '' }}">USD</a>
+                  </div>
+                </div><!-- card-header -->
+                <div class="card-body">
+                  <div class="col-sm-8 col-md-6">
+                    <div class="chartjs-wrapper-demo" style="width: 650px; height:276px;"><canvas id="chartBar4"></canvas></div>
+                  </div><!-- col-6 -->
+                </div><!-- card-body -->
+              </div><!-- card -->
+            </div><!-- col -->
+            <div class="col-lg-5 mg-t-20 mg-lg-t-0">
+              <div class="row row-sm">
+                <div class="col-sm-12 mg-t-20">
+                  <div class="mg-t-20 mg-lg-t-0" style="width: 480px; height:100px; padding-top: -10px;">
+                    <div class="card card-table-one" style="width: 480px; height:395px; margin-top: -20px;">
+                      <h6 class="card-title">Matched Orders</h6>
+                      <div class="table-responsive">
+                        <table class="table">
+                          <thead>
+                            <tr>
+                              <th style="color: #071C42;">Value Date</th>
+                              <th style="color: #071C42;">% Matching</th>
+                              <th class="numerical" style="color: #071C42;">Matched</th>
+                              <th style="color: #071C42;">Unmatched</th>
+                              <th style="color: #071C42;">Position</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                              {% for date, metric in metrics.items() %}
+                              <tr>
+                                  <td>{{ date }}</td>
+                                  <td>{{ metric['Matching Rate']|round(2) }}%</td>
+                                  <td>{{ metric['Volume Matched'] }}</td>
+                                  <td>{{ metric['Net Balance'] }}</td>
+                                  <td>{{ metric['Net Position'] }}</td>
+                              </tr>
+                              {% endfor %}
+                          </tbody>
+                        </table>
+                      </div><!-- table-responsive -->
+                    </div><!-- card -->
+                  </div><!-- col-lg -->
+                </div>
+              </div><!-- row -->
+            </div><!--col -->
+          </div><!-- row -->
+
+          <div class="row row-sm mg-b-20 mg-lg-b-0" style="width: 1200px;">
+            <div class="mg-t-20 mg-lg-t-0" style="width: 1200px;">
+              <div class="card card-table-one">
+                <h6 class="card-title">Matched Orders</h6>
+                <div class="table-responsive">
+                  <table class="table" id="matched-orders-table">
+                    <thead>
+                      <tr>
+                        <th style="color: #071C42;">Value Date</th>
+                        <th style="color: #071C42;">Seller</th>
+                        <th style="color: #071C42; text-align: left;">Rating</th>
+                        <th style="color: #071C42;">Matched Amount</th>
+                        <th style="color: #071C42;">Buyer</th>
+                        <th style="color: #071C42;">Rating</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for match in matches %}
+                      <tr>
+                        <td>{{ match['Value Date'] }}</td>
+                        <td>{{ match['Seller'] }}</td>
+                        <td class="numerical">{{ match['Seller Rating'] }}</td>
+                        <td class="numerical">{{ match['Matched Amount'] }}</td>
+                        <td>{{ match['Buyer'] }}</td>
+                        <td class="numerical">{{ match['Buyer Rating'] }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div><!-- table-responsive -->
+              </div><!-- card -->
+            </div><!-- col-lg -->
+          </div><!-- row -->
+        </div><!-- az-content-body -->
+
+        <div class="tab-pane fade" id="market-execution" role="tabpanel" aria-labelledby="market-execution-tab">
+          <div class="row row-sm mg-b-20" >
+            <div class="col-lg-7 ht-lg-100p">
+              <div class="card card-dashboard-one">
+                <div class="card-header">
+                  <div>
+                    <h6 class="card-title">Executive Summary</h6>
+                    <p class="card-text">Quick glance at unmatched amounts per value date</p>
+                  </div>
+                  <div class="btn-group">
+                      <a href="/admin/index?currency=EUR" class="btn currency-btn {{ 'active' if selected_currency == 'EUR' else '' }}">EUR</a>
+                      <a href="/admin/index?currency=USD" class="btn currency-btn {{ 'active' if selected_currency == 'USD' else '' }}">USD</a>
+                  </div>
+                </div><!-- card-header -->
+                <div class="card-body">
+                   <div class="col-sm-8 col-md-6">
+                      <div class="chartjs-wrapper-demo" style="width: 650px; height:276px; "><canvas id="chartBar5" ></canvas></div>
+                   </div><!-- col-6 -->
+                </div><!-- card-body -->
+              </div><!-- card -->
+            </div><!-- col -->
+            <div class="col-lg-5 mg-t-20 mg-lg-t-0">
+              <div class="row row-sm">
+                <div class="col-sm-12 mg-t-20">
+                  <div class="mg-t-20 mg-lg-t-0" style="width: 480px; height:100px; padding-top: -10px;">
+                    <div class="card card-table-one" style="width: 480px; height:395px; margin-top: -20px;">
+                      <h6 class="card-title">Top 5 unmatched clients</h6>
+                      <div class="table-responsive">
+                        <table class="table" >
+                          <thead>
+                            <tr>
+                              <th style="color: #071C42;">Type</th>
+                              <th style="color: #071C42;">Value Date</th>
+                              <th style="color: #071C42;">Client</th>
+                              <th style="color: #071C42;">Rating</th>
+                              <th style="color: #071C42;">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                               {% for client in top_clients %}
+                                <tr>
+                                    <td>{{ client.Type }}</td>
+                                  <td>{{ client['Value Date'] }}</td>
+                                    <td>{{ client.Name }}</td>
+                                    <td>{{ client.Rating }}</td>
+                                    <td>{{ client.Amount }}</td>
+                                </tr>
+                                {% endfor %}
+                          </tbody>
+                        </table>
+                      </div><!-- table-responsive -->
+                    </div><!-- card -->
+                  </div><!-- col-lg -->
+                </div>
+              </div><!-- row -->
+            </div><!--col -->
+          </div><!-- row -->
+          <div class="row row-sm mg-b-20 mg-lg-b-0" style="width: 1200px;">
+            <div class="mg-t-20 mg-lg-t-0" style="width: 1200px;">
+              <div class="card card-table-one">
+                <h6 class="card-title">Market Orders</h6>
+                <div class="table-responsive">
+                  <table class="table" id="market-execution-table">
+                    <thead>
+                      <tr>
+                        <th style="color: #071C42;">Type</th>
+                        <th style="color: #071C42;">Currency</th>
+                        <th style="color: #071C42;">Order Dates</th>
+                        <th style="color: #071C42; position: center;">Rating</th>
+                        <th style="color: #071C42;">Client</th>
+                        <th style="color: #071C42;">Value Date</th>
+                        <th style="color: #071C42;">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for order in market %}
+                      <tr>
+                        <td>{{ order['Type'] }}</td>
+                        <td>{{ order['Currency'] }}</td>
+                        <td>{{ order['Order Dates'] }}</td>
+                        <td>{{ order['Rating'] }}</td>
+                        <td>{{ order['Client'] }}</td>
+                        <td>{{ order['Value Date'] }}</td>
+                        <td>{{ order['Transaction Amount'] }}</td>
+                        <td>
+                          <form action="/admin/move_order_back" method="post">
+                            <input type="hidden" name="type" value="{{ order['Type'] }}">
+                            <input type="hidden" name="transaction_amount" value="{{ order['Transaction Amount'] }}">
+                            <input type="hidden" name="currency" value="{{ order['Currency'] }}">
+                            <input type="hidden" name="order_dates" value="{{ order['Order Dates'] }}">
+                            <input type="hidden" name="value_date" value="{{ order['Value Date'] }}">
+                            <input type="hidden" name="bank_account" value="{{ order['Bank Account'] }}">
+                            <input type="hidden" name="reference" value="{{ order['reference'] }}">
+                            <input type="hidden" name="client" value="{{ order['Client'] }}">
+                            <input type="hidden" name="status" value="{{ order['Status'] }}">
+                            <input type="hidden" name="rating" value="{{ order['Rating'] }}">
+                            <button type="submit" class="btn btn-primary btn-sm" style="color: #071C42; background-color: #fff; border: 2px solid #071C42;border-radius: 6px;">Add Back</button>
+                          </form>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div><!-- table-responsive -->
+              </div><!-- card -->
+            </div><!-- col-lg -->
+          </div><!-- row -->
+        </div>
+        <div class="tab-pane fade" id="new-orders" role="tabpanel" aria-labelledby="new-orders-tab">
+          <div class="row row-sm mg-b-20" >
+            <div class="col-lg-7 ht-lg-100p">
+              <div class="card card-dashboard-one">
+                <div class="card-header">
+                  <div>
+                    <h6 class="card-title">Executive Summary</h6>
+                    <p class="card-text">Quick glance at the new orders for today</p>
+                  </div>
+                  <div class="btn-group">
+                      <a href="/admin/?currency=EUR" class="btn currency-btn {{ 'active' if selected_currency == 'EUR' else '' }}">EUR</a>
+                      <a href="/admin/?currency=USD" class="btn currency-btn {{ 'active' if selected_currency == 'USD' else '' }}">USD</a>
+                  </div>
+                </div><!-- card-header -->
+                <div class="card-body">
+                   <div class="col-sm-8 col-md-6">
+                      <div class="chartjs-wrapper-demo" style="width: 650px; height:280px;"><canvas id="chartArea1"></canvas></div>
+                   </div><!-- col-6 -->
+                </div><!-- card-body -->
+              </div><!-- card -->
+            </div><!-- col -->
+            <div class="col-lg-5 mg-t-20 mg-lg-t-0">
+              <div class="row row-sm">
+                <div class="col-sm-12 mg-t-20">
+                  <div class="mg-t-20 mg-lg-t-0" style="width: 480px; height:100px; padding-top: -10px;">
+                    <div class="card card-table-one" style="width: 480px; height:395px; margin-top: -20px;">
+                      <h6 class="card-title">Buy and Sell Transaction Share</h6>
+                      <div class="col-sm-8 col-md-6">
+                      <div class="chartjs-wrapper-demo" style="width: 550px; height:550px; margin-left:-75px;margin-top: 20px;"><canvas id="chartDonut"></canvas></div>
+                   </div><!-- col-6 -->
+                    </div><!-- card -->
+                  </div><!-- col-lg -->
+                </div>
+              </div><!-- row -->
+            </div><!--col -->
+          </div><!-- row -->
+          <div class="row row-sm mg-b-20 mg-lg-b-0" style="width: 1200px;">
+            <div class="mg-t-20 mg-lg-t-0" style="width: 1200px;">
+              <div class="card card-table-one">
+                <h6 class="card-title">Today's Orders</h6>
+                <div class="table-responsive">
+                  <table class="table" id="new-orders-table">
+                    <thead>
+                      <tr>
+                        <th style="color: #071C42;">Type</th>
+                        <th style="color: #071C42;">Currency</th>
+                        <th style="color: #071C42;">Order Dates</th>
+                        <th style="color: #071C42;">Rating</th>
+                        <th style="color: #071C42;">Client</th>
+                        <th style="color: #071C42;">Value Date</th>
+                        <th style="color: #071C42;">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for order in new_orders %}
+                      <tr>
+                        <td>{{ order['transaction_type'] }}</td>
+                        <td>{{ order['currency'] }}</td>
+                        <td>{{ order['order_date'] }}</td>
+                        <td>{{ order['rating'] }}</td>
+                        <td>{{ order['Client'] }}</td>
+                        <td>{{ order['value_date'] }}</td>
+                        <td>{{ order['amount'] }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div><!-- table-responsive -->
+              </div><!-- card -->
+            </div><!-- col-lg -->
+          </div><!-- row -->
+        </div>
+      </div>
+      </div>
+    </div><!-- az-content -->
+    </div>
+
+    <div class="az-footer ht-40">
+      <div class="container ht-100p pd-t-0-f">
+        <span class="text-muted d-block text-center text-sm-center d-sm-inline-block">Copyright © ColombusCapital.com 2024</span>
+      </div><!-- container -->
+    </div><!-- az-footer -->
+
+
+    <!-- Vendor JS Files -->
+  <script src="{{ url_for('admin_bp.static', filename='lib/jquery/jquery.min.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/ionicons/ionicons.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/jquery.flot/jquery.flot.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/jquery.flot/jquery.flot.resize.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/chart.js/Chart.bundle.min.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='lib/peity/jquery.peity.min.js') }}"></script>
+
+  <script src="{{ url_for('admin_bp.static', filename='js/azia.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='js/chart.flot.sampledata.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='js/dashboard.sampledata.js') }}"></script>
+  <script src="{{ url_for('admin_bp.static', filename='js/jquery.cookie.js') }}"></script>
+    <!-- At the end of your body tag, include the libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.0.0-rc.7/html2canvas.min.js"></script>
+
+
+  <script>
+    $('#myTab a').on('click', function (e) {
+      e.preventDefault()
+      $(this).tab('show')
+    })
+  </script>
+
+ <script>
+  $(document).ready(function() {
+    // Retrieve the previously active tab from localStorage
+    var selectedTab = localStorage.getItem('selectedTab');
+
+    if (selectedTab !== null) {
+        // Show the stored tab
+        $('#' + selectedTab).tab('show');
+    } else {
+        // Show the default tab if no tab was stored, and ensure it's displayed
+        $('#myTab a:first').tab('show');
+    }
+
+    // Make sure all tab panes are visible now that the correct tab has been activated
+    $('.tab-pane').css('display', '');
+
+    // Update localStorage with the currently active tab whenever a tab is clicked
+    $('#myTab a').on('click', function() {
+        var selectedTabId = $(this).attr('id');
+        localStorage.setItem('selectedTab', selectedTabId);
+    });
+});
+
+  </script>
+  <script>
+  // Select all elements containing numbers
+  var numberElements = document.querySelectorAll('body *');
+
+  // Loop through each element and format numbers
+  numberElements.forEach(function(element) {
+    // Match numbers using regular expression
+    var text = element.innerHTML;
+    var formattedText = text.replace(/\b(\d+)\b(?=\.\d+)/g, function(match, number) {
+      // Add space as a thousands separator
+      return number.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1 ');
+    });
+    // Update the content of the element with formatted text
+    element.innerHTML = formattedText;
+  });
+</script>
+<script type="text/javascript">
+// Access the metrics data passed from Flask
+var metricsData = JSON.parse('{{ metrics_json|safe }}');
+</script>
+
+<script>
+var ctx3 = document.getElementById('chartBar4').getContext('2d');
+var gradient = ctx3.createLinearGradient(0, 0, 0, 250);
+gradient.addColorStop(0, '#071C42');
+gradient.addColorStop(1, '#bfbfbf');
+
+// Filter labels and data for non-zero y-values
+var labels = [];
+var data = [];
+
+Object.keys(metricsData).forEach(function(date) {
+  var matchedAmount = metricsData[date]['Volume Matched'];
+  if (matchedAmount !== 0) { // Check if the matched amount is not zero
+    labels.push(date); // Add the date to the labels array
+    data.push(matchedAmount); // Add the matched amount to the data array
+  }
+});
+
+new Chart(ctx3, {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: '# matched amount',
+      data: data,
+      backgroundColor: gradient
+    }]
+  },
+  options: {
+    maintainAspectRatio: false,
+    responsive: true,
+    legend: {
+      display: false
+    },
+    scales: {
+      yAxes: [{
+        gridLines: {
+          display: false // This will remove the grid lines from the Y axis
+        },
+        ticks: {
+          beginAtZero: true,
+          fontSize: 10
+        }
+      }],
+      xAxes: [{
+        gridLines: {
+          display: false // This will remove the grid lines from the X axis
+        },
+        barPercentage: 0.6,
+        ticks: {
+          beginAtZero: true,
+          fontSize: 11
+        }
+      }]
+    }
+  }
+});
+</script>
+
+
+  <script>
+    var chartData = JSON.parse('{{ chart_data|safe }}');
+    var ctx4 = document.getElementById('chartBar5').getContext('2d');
+    var colors = chartData.data.map(value => value >= 0 ? '#071C42' : '#bfbfbf');
+
+    // Calculate the maximum absolute value from the data
+    var maxAbsValue = Math.max(...chartData.data.map(value => Math.abs(value)));
+
+    new Chart(ctx4, {
+      type: 'horizontalBar',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          label: 'Unmatched Amount',
+          data: chartData.data,
+          backgroundColor: colors
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Buy Side (Negative) / Sell Side (Positive)' , // Descriptive title
+          fontSize: 14,
+        },
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true,
+              fontSize: 10,
+            },
+            gridLines: {
+              display: false
+            }
+          }],
+          xAxes: [{
+            ticks: {
+              beginAtZero: true,
+              fontSize: 11,
+              min: -maxAbsValue,
+              max: maxAbsValue,
+              stepSize: Math.ceil(maxAbsValue / 5)
+            },
+            gridLines: {
+              display: false
+            },
+            scaleLabel: {
+              display: true,
+              labelString: 'Transaction Amount' // Additional clarification if needed
+            }
+          }]
+        },
+        tooltips: {
+          callbacks: {
+            label: function(tooltipItem, data) {
+              var label = data.labels[tooltipItem.index] || '';
+              var value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+              var sign = value >= 0 ? '+' : '';
+              return `${label}: ${sign}${value}`;
+            }
+          }
+        }
+      }
+    });
+  </script>
+
+ <script>
+  var chartData = JSON.parse('{{ Area_data | tojson | safe }}');
+  var ctx9 = document.getElementById('chartArea1').getContext('2d');
+
+  var gradient1 = ctx9.createLinearGradient(0, 900, 0, 0);
+  gradient1.addColorStop(0, 'rgba(212, 215, 222,0)');
+  gradient1.addColorStop(1, 'rgba(212, 215, 222,1)');
+
+  var gradient2 = ctx9.createLinearGradient(0, 400, 0, 0);
+  gradient2.addColorStop(0, 'rgba(7, 28, 66,0)');
+  gradient2.addColorStop(1, 'rgba(7, 28, 66,.9)');
+
+  // Update dataset backgrounds to use gradients
+  chartData.datasets[0].backgroundColor = gradient1;
+  chartData.datasets[1].backgroundColor = gradient2;
+
+  new Chart(ctx9, {
+    type: 'line',
+    data: chartData,
+    options: {
+      maintainAspectRatio: false,
+      legend: { display: false },
+      scales: {
+        yAxes: [{ ticks: { beginAtZero: true, fontSize: 10 }, gridLines: { display: false } }],
+        xAxes: [{ ticks: { beginAtZero: true, fontSize: 11 }, gridLines: { display: false } }]
+      }
+    }
+  });
+</script>
+
+<script>
+function downloadExcel() {
+    const tabsData = {};
+    document.querySelectorAll('.tab-pane').forEach((tabPane, index) => {
+        // Ensure we're only capturing data from the first 3 tab panes
+        if (index < 3) {
+            const tables = tabPane.querySelectorAll('table');
+            tables.forEach((table, tableIndex) => {
+                // Prefix tabPane.id with table index to distinguish multiple tables within the same tab
+                const tableId = `${tabPane.id}-table-${tableIndex + 1}`;
+                const rowsData = [];
+                table.querySelectorAll('tr').forEach(row => {
+                    const rowData = [];
+                    row.querySelectorAll('th, td').forEach(cell => {
+                        rowData.push(cell.innerText.trim());
+                    });
+                    rowsData.push(rowData);
+                });
+                tabsData[tableId] = rowsData;
+            });
+        }
+    });
+
+    // Call the server with the collected data
+    fetch('/admin/download_excel', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tabsData),
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        // Create a URL for the blob
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `analytics_${new Date().toISOString().slice(0,10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+</script>
+
+<script>
+async function captureTabsAndExportPDF() {
+    const images = [];
+    const tabLinks = document.querySelectorAll('.az-dashboard-nav .nav-link');
+    const tabContents = document.querySelectorAll('.tab-pane');
+
+    for (let i = 0; i < tabLinks.length; i++) {
+        // Activate the tab
+        new bootstrap.Tab(tabLinks[i]).show();
+
+        // Wait for the content to be visible and any dynamic content to load
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Adjust delay as needed
+
+        // Ensure the tab content is now visible
+        const tabContent = tabContents[i];
+        if (tabContent) {
+            const canvas = await html2canvas(tabContent, {scrollY: -window.scrollY, windowWidth: document.documentElement.offsetWidth});
+            images.push(canvas.toDataURL('image/png'));
+        }
+    }
+
+    // Send captured images to server
+    exportToPDF(images);
+}
+
+function exportToPDF(images) {
+    fetch('/admin/export-pdf', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({images}),
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        // Trigger download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+</script>
+
+  <script type="text/javascript">
+  var transactionSums = {{ transaction_sums|tojson }};
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Define simple colors for the chart
+  var simpleColors = ['#071C42', '#bfbfbf']; // Use any colors you like
+
+  var transactionSums = {{ transaction_sums|tojson }};
+  var total = transactionSums.buy + transactionSums.sell;
+  var buyPercentage = (transactionSums.buy / total) * 100;
+  var sellPercentage = (transactionSums.sell / total) * 100;
+
+  var datapie = {
+    labels: ['Sell', 'Buy'],
+    datasets: [{
+      data: [buyPercentage, sellPercentage], // Make sure these values are calculated
+      backgroundColor: simpleColors // Use simple colors here
+    }]
+  };
+
+  var options = {
+    responsive: true,
+    tooltips: {
+      callbacks: {
+        label: function(tooltipItem, data) {
+          var label = data.labels[tooltipItem.index] || '';
+          var value = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+          var total = data.datasets[tooltipItem.datasetIndex]. data.reduce(function(previousValue, currentValue) {
+            return previousValue + currentValue;
+          });
+          var percentage = Math.round((value / total) * 100);
+          return label + ': ' + percentage + '%';
+        }
+      }
+    },
+    legend: {
+      position: 'bottom',
+      labels: {
+        fontColor: '#071C42',
+        fontSize: 14
+      }
+    }
+  };
+
+  var ctx7 = document.getElementById('chartDonut').getContext('2d');
+  var myPieChart7 = new Chart(ctx7, {
+    type: 'doughnut',
+    data: datapie,
+    options: options
+  });
+});
+</script>
+
+
+
+  </body>
+</html>

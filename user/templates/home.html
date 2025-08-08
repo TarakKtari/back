@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Colombus Capital</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <link href="{{ url_for('user_bp.static', filename='img/white.png')}}" rel="icon">
+  <link href="{{ url_for('user_bp.static', filename='img/apple-touch-icon.png')}}" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{{ url_for('user_bp.static', filename='vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}"rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/boxicons/css/boxicons.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/glightbox/css/glightbox.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/remixicon/remixicon.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.css')}}" rel="stylesheet">
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+
+  <!-- Template Main CSS File -->
+  <link rel="stylesheet" href="{{ url_for('user_bp.static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top ">
+    <div class="container d-flex align-items-center">
+      <a href="home.html" class="logo me-auto"><img src="{{ url_for('user_bp.static', filename='img/white.png')}}" class="img-fluid" alt="CC"></a>
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto active" href="#hero">Home</a></li>
+          <li><a class="nav-link scrollto" href="#about">About</a></li>
+          <li><a class="nav-link scrollto" href="#services">Services</a></li>
+          <li><a class="nav-link scrollto" href="#contact">Book Meeting</a></li>
+          <li><a class="nav-link scrollto" href="{{ url_for('user_bp.glossary') }}">Blog</a></li>
+          <li><button type="button" class="getstarted scrollto" data-target="#login" data-toggle="modal">Login</button></li>
+        </ul>
+      </nav><!-- .navbar -->
+
+    </div>
+  </header><!-- End Header -->
+
+  <!-- ======= Hero Section ======= -->
+  <section id="hero" class="d-flex align-items-center">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 d-flex flex-column justify-content-center pt-4 pt-lg-0 order-2 order-lg-1" data-aos="fade-up" data-aos-delay="200">
+          <h1>Your trusted partner in FX transactions</h1>
+          <h2>The Infinite Trust</h2>
+          <div class="d-flex justify-content-center justify-content-lg-start">
+            <a href="#cta" class="btn-get-started scrollto">Free Demo</a>
+            <a href="#" class="glightbox btn-watch-video"><i class="bi bi-play-circle"></i><span>Watch Video</span></a>
+          </div>
+        </div>
+        <div class="col-lg-6 order-1 order-lg-2 hero-img" data-aos="zoom-in" data-aos-delay="200">
+          <iframe src="https://www.youtube.com/embed/pliSGjhBUCo?si=3z3VqWpwDhqFX3xV" title="Colombus Capital" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen width="500" height="600" style="height: 300px;" class="img-fluid animated" alt="" ></iframe>
+        </div>
+      </div>
+    </div>
+
+  </section><!-- End Hero -->
+
+  <main id="main">
+    <!-- ======= About Us Section ======= -->
+    <section id="about" class="about">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>About Us</h2>
+        </div>
+
+        <div class="row content">
+          <div class="col-lg-6">
+            <p>
+              At Colombus Capital, we are committed to fostering sustainable and innovative FX strategies that empower emerging markets. Through strategic partnerships, rigorous due diligence, and a commitment to ethical practices, we aim to create lasting impact, fostering economic growth and enhancing the quality of life in communities around the world
+            </p>
+          </div>
+          <div class="col-lg-6 pt-4 pt-lg-0">
+            <ul>
+              <li><i class="ri-check-double-line"></i> Excellence: Uphold the highest standards in every transaction</li>
+              <li><i class="ri-check-double-line"></i> Innovation:  Champion groundbreaking solutions to transform emerging markets sustainably.</li>
+              <li><i class="ri-check-double-line"></i> Trust: Underpin transparent, integrity-driven FX transactions, crucial for emerging market support</li>
+            </ul>
+            <a href="#" class="btn-learn-more">Learn More</a>
+          </div>
+        </div>
+
+      </div>
+    </section><!-- End About Us Section -->
+
+    <!-- ======= Why Us Section ======= -->
+    <section id="why-us" class="why-us section-bg">
+      <div class="container-fluid" data-aos="fade-up">
+
+        <div class="row">
+
+          <div class="col-lg-7 d-flex flex-column justify-content-center align-items-stretch  order-2 order-lg-1">
+
+            <div class="content">
+              <h3>3 Reasons <strong>Why to choose Colombus Capital</strong></h3>
+            </div>
+
+            <div class="accordion-list">
+              <ul>
+                <li>
+                  <a data-bs-toggle="collapse" class="collapse" data-bs-target="#accordion-list-1"><span>01</span> Decisions validated by data and fact, not guesswork <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                  <div id="accordion-list-1" class="collapse show" data-bs-parent=".accordion-list">
+                    <p>
+                      Decisions validated by data and fact, not guesswork
+                    </p>
+                  </div>
+                </li>
+
+                <li>
+                  <a data-bs-toggle="collapse" data-bs-target="#accordion-list-2" class="collapsed"><span>02</span> 40+ years combined experience in FX risk management<i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                  <div id="accordion-list-2" class="collapse" data-bs-parent=".accordion-list">
+                    <p>
+                      We design bespoke, systematic FX hedging and execution solutions that help to protect profits in volatile markets
+                    </p>
+                  </div>
+                </li>
+
+                <li>
+                  <a data-bs-toggle="collapse" data-bs-target="#accordion-list-3" class="collapsed"><span>03</span> Zero conflict of interest. We sit on your side of the table<i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+                  <div id="accordion-list-3" class="collapse" data-bs-parent=".accordion-list">
+                    <p>
+                    </p>
+                  </div>
+                </li>
+
+              </ul>
+            </div>
+
+          </div>
+
+          <div class="col-lg-5 align-items-stretch order-1 order-lg-2 img" style="background-image: url('{{ url_for('user_bp.static', filename='img/why-us.png') }}')" data-aos="zoom-in" data-aos-delay="150">&nbsp;</div>
+        </div>
+
+      </div>
+    </section><!-- End Why Us Section -->
+
+    <!-- ======= Skills Section ======= -->
+    <section id="skills" class="skills">
+      <div class="container" data-aos="fade-up">
+
+        <div class="row">
+          <div class="col-lg-6 d-flex align-items-center" data-aos="fade-right" data-aos-delay="100">
+            <img src="{{ url_for('user_bp.static', filename='img/skills.png') }}" class="img-fluid" alt="">
+          </div>
+          <div class="col-lg-6 pt-4 pt-lg-0 content" data-aos="fade-left" data-aos-delay="100">
+            <h3>Industries Clients</h3>
+            <p class="fst-italic">
+              We target different sectors
+            </p>
+
+            <div class="skills-content">
+
+              <div class="progress">
+                <span class="skill">Manufacturing <i class="val">40%</i></span>
+                <div class="progress-bar-wrap">
+                  <div class="progress-bar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+
+              <div class="progress">
+                <span class="skill">Agriculture <i class="val">30%</i></span>
+                <div class="progress-bar-wrap">
+                  <div class="progress-bar" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+
+              <div class="progress">
+                <span class="skill">Textiles <i class="val">10%</i></span>
+                <div class="progress-bar-wrap">
+                  <div class="progress-bar" role="progressbar" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+
+              <div class="progress">
+                <span class="skill">Construction <i class="val">20%</i></span>
+                <div class="progress-bar-wrap">
+                  <div class="progress-bar" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section><!-- End Skills Section -->
+
+    <!-- ======= Services Section ======= -->
+    <section id="services" class="services section-bg">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>Services</h2>
+          <p></p>
+        </div>
+
+        <div class="row">
+          <div class="col-xl-3 col-md-6 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bxl-dribbble"></i></div>
+              <h4><a href="">Transparent Pricing</a></h4>
+              <p>Full visibility on costs, helping you save on every transaction</p>
+            </div>
+          </div>
+          <div class="col-xl-3 col-md-6 d-flex align-items-stretch mt-4 mt-md-0" data-aos="zoom-in" data-aos-delay="200">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bx-file"></i></div>
+              <h4><a href="">FX Workflow Automation</a></h4>
+              <p>Automate the entire FX workflow, from risk assessment to execution, without disrupting your business processes</p>
+            </div>
+          </div>
+          <div class="col-xl-3 col-md-6 d-flex align-items-stretch mt-4 mt-xl-0" data-aos="zoom-in" data-aos-delay="400">
+            <div class="icon-box">
+              <div class="icon"><i class="bx bx-layer"></i></div>
+              <h4><a href="">Low Cost Execution</a></h4>
+              <p>We offer tailored solutions that resonate with the unique needs of varied business sectors, bringing them onto a single cohesive platform</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Services Section -->
+
+    <!-- ======= Cta Section ======= -->
+    <section id="cta" class="cta">
+      <div class="container" data-aos="zoom-in">
+
+        <div class="row">
+          <div class="col-lg-9 text-center text-lg-start">
+            <h3>See the truth</h3>
+            <p> Upload your historical data and see what's your real losses</p>
+          </div>
+          <div class="col-lg-3 cta-btn-container text-center">
+            <a class="cta-btn align-middle" href="{{ url_for('user_bp.report') }}">Upload Data</a>
+          </div>
+        </div>
+
+      </div>
+    </section><!-- End Cta Section -->
+
+    <!-- ======= Frequently Asked Questions Section ======= -->
+    <section id="faq" class="faq section-bg">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>Frequently Asked Questions</h2>
+        </div>
+
+        <div class="faq-list">
+          <ul>
+            <li data-aos="fade-up" data-aos-delay="100">
+              <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" class="collapse" data-bs-target="#faq-list-1">What is Colombus Capital and what services does it offer? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+              <div id="faq-list-1" class="collapse show" data-bs-parent=".faq-list">
+                <p>
+                   Colombus Capital is an innovative Treasury as a Service (TaaS) provider focused on emerging markets. It offers services such as FX workflow automation, low-cost execution, FX transaction efficiency, intelligent alerts, strategic FX dashboard access, transparent live mid-market rates, bespoke risk management tools, and executive support.
+                </p>
+              </div>
+            </li>
+
+            <li data-aos="fade-up" data-aos-delay="200">
+              <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-2" class="collapsed">How does Colombus Capital ensure transparent pricing in its services? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+              <div id="faq-list-2" class="collapse" data-bs-parent=".faq-list">
+                <p>
+                  The company prioritizes full visibility on costs to help clients save on every transaction, offering direct access to real-time transparent mid-market rates and tailored solutions that ensure fair pricing and strategic trading decisions.
+                </p>
+              </div>
+            </li>
+
+            <li data-aos="fade-up" data-aos-delay="300">
+              <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-3" class="collapsed">What makes Colombus Capital unique in the FX market? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+              <div id="faq-list-3" class="collapse" data-bs-parent=".faq-list">
+                <p>
+                  Distinguished by its focus on emerging markets, Colombus Capital leverages advanced AI and analytics for enhanced transparency, lower costs, and reduced conflicts of interest, setting it apart from traditional FX banks and brokers.
+                </p>
+              </div>
+            </li>
+
+            <li data-aos="fade-up" data-aos-delay="400">
+              <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-4" class="collapsed">How does Colombus Capital support its clients in making informed decisions? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+              <div id="faq-list-4" class="collapse" data-bs-parent=".faq-list">
+                <p>
+                  The company offers executive support with tailored expert guidance for individual FX strategies and insightful support in navigating complex financial landscapes, backed by data-driven decision-making processes.
+                </p>
+              </div>
+            </li>
+
+            <li data-aos="fade-up" data-aos-delay="500">
+              <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse" data-bs-target="#faq-list-5" class="collapsed"> How does Colombus Capital utilize AI and analytics in its services? <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a>
+              <div id="faq-list-5" class="collapse" data-bs-parent=".faq-list">
+                <p>
+                  Colombus Capital harnesses cutting-edge AI and analytics to automate FX workflows, from risk assessment to execution, ensuring high-efficiency processing and intelligent alerts for strategic actions. This technology enables tailored solutions, optimizing hedging and execution to align with client-specific strategies and market movements.
+                </p>
+              </div>
+            </li>
+
+          </ul>
+        </div>
+
+      </div>
+    </section><!-- End Frequently Asked Questions Section -->
+
+    <!-- ======= Team Section ======= -->
+    <section id="team" class="team section-bg">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>Our Experts</h2>
+          <p>40+ years combined experience in FX risk management</p>
+        </div>
+
+        <div class="row">
+
+          <div class="col-lg-6" data-aos="zoom-in" data-aos-delay="100">
+            <div class="member d-flex align-items-start">
+              <div class="pic"><img src="{{ url_for('user_bp.static', filename='img/team/team-1.jpg') }}" class="img-fluid" alt=""></div>
+              <div class="member-info">
+                <h4>Eymen Errais</h4>
+                <span></span>
+                <p>+15 years of experience in investment and banking. PhD from Stanford University in Management Science & Engineering. FRM Certified.
+                <div class="social">
+                  <a href=""><i class="ri-twitter-fill"></i></a>
+                  <a href=""> <i class="ri-linkedin-box-fill"></i> </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6 mt-4 mt-lg-0" data-aos="zoom-in" data-aos-delay="200">
+            <div class="member d-flex align-items-start">
+              <div class="pic"><img src="{{ url_for('user_bp.static', filename='img/team/team-2.jpeg') }}" class="img-fluid" alt=""></div>
+              <div class="member-info">
+                <h4>Mezri ElKaroui</h4>
+                <span></span>
+                <p>FX trader at Citibank, with over 15 years in finance cumulated at Citibank, Tradition UK, HSBC, Generali Investment, AXA, and GDF Suez.</p>
+                <div class="social">
+                  <a href=""><i class="ri-twitter-fill"></i></a>
+                  <a href=""> <i class="ri-linkedin-box-fill"></i> </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section><!-- End Team Section -->
+
+    <!-- ======= Contact Section ======= -->
+    <section id="contact" class="contact">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>Book Meeting</h2>
+        </div>
+
+        <div class="row">
+
+          <div class="col-lg-5 d-flex align-items-stretch">
+            <div class="info">
+              <div class="address">
+                <i class="bi bi-geo-alt"></i>
+                <h4>Location:</h4>
+                <p>Immeuble Tanit, Rue d’Erable, Lac II</p>
+              </div>
+
+              <div class="email">
+                <i class="bi bi-envelope"></i>
+                <h4>Email:</h4>
+                <p>contact@colombus-capital.com</p>
+              </div>
+
+              <div class="phone">
+                <i class="bi bi-phone"></i>
+                <h4>Call:</h4>
+                <p>+216 53 789 000</p>
+              </div>
+
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3192.897187957327!2d10.278607875811263!3d36.844938272234366!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x12fd4b6e2f9d46f3%3A0x47c6b6150b6d7607!2sTanit%20Business%20Center!5e0!3m2!1sfr!2stn!4v1707989425918!5m2!1sfr!2stn" frameborder="0" style="border:0; width: 100%; height: 450px;" allowfullscreen></iframe>
+            </div>
+
+          </div>
+
+          <div class="col-lg-7 mt-5 mt-lg-0 d-flex align-items-stretch">
+            <div class="container">
+            <form action="/book_demo" method="POST" class="book_meeting_form">
+              <div class="form-group">
+                <label for="name">Company Name</label>
+                <input type="text" id="name" name="name" required class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="rep">Representative Name</label>
+                <input type="text" id="rep" name="rep" required class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="position">Representative Position</label>
+                <input type="text" id="position" name="position" required class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="email">Business Email</label>
+                <input type="email" id="email" name="email" required class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="time">Time</label>
+                <input type="time" id="time" name="time" required class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="notes">Notes (Optional)</label>
+                <textarea id="notes" name="notes" rows="3" class="form-control"></textarea>
+              </div>
+              <button type="submit" class="submit_btn">Book Now</button>
+            </form>
+          </div>
+          </div>
+        </div>
+      </div>
+    </section><!-- End Contact Section -->
+
+  </main><!-- End #main -->
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+
+    <div class="footer-newsletter">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-6">
+            <h4>Join Our Newsletter</h4>
+            <p>Stay informed about the latest news in the world of FX</p>
+            <form action="" method="post">
+              <input type="email" name="email"><input type="submit" value="Subscribe">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-3 col-md-6 footer-contact">
+            <h3>Colombus Capital</h3>
+            <p>
+              Immeuble Tanit <br>
+              Rue d’Erable<br>
+              Lac II <br><br>
+              <strong>Phone:</strong> +216 53 789 000<br>
+              <strong>Email:</strong> contact@colombus-capital.com<br>
+            </p>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Useful Links</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.bct.gov.tn/bct/siteprod/documents/Reg_des_Chges_ao13.pdf">FX Regulation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.globalfxc.org/docs/fx_global.pdf">FX Global Code</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.cbf.org.tn/circulaires-et-notes-2/">Circular and Notes</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Services</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Transparent Pricing</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">FX Workflow Automation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Low Cost Execution</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Social Networks</h4>
+            <p>Keep connected on our social media</p>
+            <div class="social-links mt-3">
+              <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+              <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container footer-bottom clearfix">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Colombus Capital</span></strong>. All Rights Reserved
+      </div>
+    </div>
+  </footer><!-- End Footer -->
+
+  <div id="preloader"></div>
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <script src="{{ url_for('user_bp.static', filename='vendor/aos/aos.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/waypoints/noframework.waypoints.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/php-email-form/validate.js') }}"></script>
+
+  <!-- Template Main JS File -->
+  <script src="{{ url_for('user_bp.static', filename='js/main.js') }}"></script>
+
+    <!-- Login Modal -->
+  <div id="login" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-body">
+          <form action="/login" method="POST">
+              <input type="text" name="username" class="username form-control" placeholder="Username"/>
+              <input type="password" name="password" class="password form-control" placeholder="password"/>
+              <input class="btn login" type="submit" value="Login" />
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    var video = document.getElementById('myVideo');
+    var checkScroll = () => {
+        var rect = video.getBoundingClientRect();
+        if (rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)) {
+            video.play();
+        } else {
+            video.pause();
+        }
+    };
+    window.addEventListener('scroll', checkScroll);
+});
+</script>
+
+</body>
+
+</html>

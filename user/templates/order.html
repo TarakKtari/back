@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Colombus Capital</title>
+
+<link href="{{ url_for('user_bp.static', filename='img/white.png')}}" rel="icon">
+  <link href="{{ url_for('user_bp.static', filename='img/apple-touch-icon.png')}}" rel="apple-touch-icon">
+
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <!-- Vendor CSS Files -->
+  <link href="{{ url_for('user_bp.static', filename='vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}"rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/boxicons/css/boxicons.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/glightbox/css/glightbox.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/remixicon/remixicon.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.css')}}" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link rel="stylesheet" href="{{ url_for('user_bp.static', filename='css/chart.css') }}">
+  <link rel="stylesheet" href="{{ url_for('user_bp.static', filename='css/bank.css') }}">
+  <link rel="stylesheet" href="{{ url_for('user_bp.static', filename='css/dashboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('user_bp.static', filename='css/order.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Header Section -->
+  <header id="header" class="fixed-top header-inner-pages">
+    <div class="container d-flex align-items-center">
+      <a href="{{ url_for('user_bp.home') }}" class="logo me-auto"><img src="{{ url_for('user_bp.static', filename='img/white.png')}}" class="img-fluid" alt="CC"></a>
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto active" href="{{ url_for('user_bp.main') }}">Main</a></li>
+          <li><a class="nav-link scrollto active" href="{{ url_for('user_bp.dashboard') }}">Dashboard</a></li>
+          <li><a class="nav-link scrollto" href="{{ url_for('user_bp.bank') }}">Bank Accounts</a></li>
+          <li><a class="nav-link scrollto" href="#">Order</a></li>
+          <li><button type="button" class="getstarted scrollto" id="logoutButton" style="color: #071C42;background: #F3F5FA; font-family: 'Jost' font-weight: 800;">Logout</button></li>
+        </ul>
+      </nav><!-- .navbar -->
+    </div>
+  </header>
+
+<div class="container-body">
+  <div class="order-form">
+    <h2>Your Order</h2>
+    <form action="#" id="order-form" method="post">
+  <label>I wish to
+    <input type="radio" name="transaction_type" value="buy" checked> buy
+    <input type="radio" name="transaction_type" value="sell"> sell
+  </label>
+  <div class="input-group">
+    <label for="amount">Amount</label>
+    <input type="text" id="amount" name="amount" placeholder="350,675.00">
+    <select name="currency" id="currency">
+        {% set currencies = [] %}
+        {% for item in data %}
+            {% if item['currency'] not in currencies %}
+                {% set _ = currencies.append(item['currency']) %}
+                <option value="{{ item['currency'] }}">{{ item['currency'] }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+  </div>
+  <div class="input-group">
+    <label for="value-date">Value Date</label>
+    <input type="date" id="value-date" name="value_date">
+    <div class="input-description">The funds must be received by Colombus on...</div>
+  </div>
+  <div class="input-group">
+    <label for="bank-account">Bank Account</label>
+    <select id="bank-account" name="bank_account">
+      {% set Banks = [] %}
+        {% for item in data %}
+            {% if item['Bank'] ~ item['account_number'] not in Banks %} <!-- Example adjustment -->
+                {% set _ = Banks.append(item['Bank'] ~ item['account_number']) %}
+      <option value="{{ item['account_number'] }}">{{ item['id'] }} </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+  </div>
+  <div class="input-group">
+    <label for="reference">Reference</label>
+    <input type="text" id="reference" name="reference" readonly>
+  </div>
+  <button type="button" class="give-btn" id="giveRateBtn">Give Rate</button>
+</form>
+
+  </div>
+  <div class="live-rate">
+  <div class="rate-header">Live Rate</div>
+  <div class="rate-list">
+    <div class="rate-item">
+      <div class="rate-description"> <span class="rate-difference" id="perMid"></span> P2P (Mid-Market)</div>
+      <div class="rate-value" id="midrate"> <span class="rate-difference"></span></div>
+    </div>
+    <div class="rate-item">
+      <div class="rate-description"><span class="rate-difference" id="perMark"></span> Market</div>
+      <div class="rate-value"><span id="rateValue"></span></div>
+    </div>
+    <div class="rate-item">
+      <div class="rate-description">Average Rate</div>
+      <div class="rate-value" id="average"></div>
+    </div>
+    <div class="rate-item">
+      <div class="rate-description">Counter value</div>
+      <div class="rate-value" id="convertedAmount"></div>
+    </div>
+    <div class="rate-item">
+      <div class="rate-description">Colombus Fee</div>
+      <div class="rate-value">(1%) <span class="rateValue" id="fees"></span></div>
+    </div>
+  </div>
+  <div class="signing-key">
+    <label for="signingKey">Please type your signing key</label>
+    <input type="password" id="signingKey" name="signingKey">
+  </div>
+    <button type="button" class="execute-btn" onclick="submitOrder()">Execute</button>
+    <div id="summary" class="input-description" style="padding-top: 25px; margin-left: -40px; width: 470px;"></div>
+</div>
+</div>
+  <h2 style="padding-top:70px; padding-left: 50px;">Orders Status</h2>
+  <div class=" grid-margin stretch-card">
+              <div class="card-table">
+                <div class="card-body">
+                  <div class="table-responsive">
+                    </div>
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Reference</th>
+                          <th>Type</th>
+                          <th>Amount</th>
+                          <th>Currency</th>
+                          <th>Value Date</th>
+                          <th>Bank Account</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {% for order in orders %}
+                        <tr data-order-reference="{{ order.reference }}">
+                          <td>{{ order.reference }}</td>
+                          <td>
+                            <div  class="currency-card {% if order.Type == 'buy' %}type-buy{% elif order.Type == 'sell' %}type-sell{% endif %}">
+                              {{order['transaction_type']  }}
+                            </div>
+                          </td>
+                          <td>{{ order['amount'] }}</td>
+                          <td>{{ order['currency'] }}</td>
+                          <td>{{ order['value_date'] }}</td>
+                          <td>{{ order['bank_account'] }}</td>
+                          <td>
+                            <div  class="currency-card {% if order.status == 'Pending' %}currency-pending{% elif order.status == 'Executed' %}currency-executed{% endif %}">
+                              {{ order.status }}
+                            </div>
+                          </td>
+                          <td>
+                            {% if order.status == 'Pending' %}
+                              <span class="icon-delete" onclick="showConfirmationModal('{{ order.reference }}')">&#128465;</span>
+                              <span class="icon-modify" onclick="modifyOrder('{{ order.reference }}')">&#9998;</span>
+                            {% endif %}
+                          </td>
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+                <div class="graph-container">
+                  <!-- Canvas for Chart.js -->
+                  <canvas id="tradedAmountsChart"></canvas>
+                </div>
+  </div>
+
+<!-- Custom Alert Modal -->
+<div id="customAlertModal" class="custom-alert-modal" style="display:none;">
+  <div class="custom-alert-content">
+    <span class="close-btn" onclick="closeCustomAlert()">&times;</span>
+    <p id="customAlertMessage"></p>
+    <div style="margin-left:100px;">
+    <button id="confirmBtn">Confirm</button> <!-- Confirm button -->
+    <button onclick="closeCustomAlert()">Close</button>
+      </div>
+  </div>
+</div>
+
+
+<!-- Custom Confirmation Modal -->
+<div id="confirmationModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeConfirmationModal()">&times;</span>
+    <p>Are you sure you want to delete this order?</p>
+    <div class="modal-actions">
+      <button onclick="confirmDelete()">Yes</button>
+      <button onclick="closeConfirmationModal()">No</button>
+    </div>
+  </div>
+</div>
+
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-3 col-md-6 footer-contact">
+            <h3>Colombus Capital</h3>
+            <p>
+              Immeuble Tanit <br>
+              Rue d’Erable<br>
+              Lac II <br><br>
+              <strong>Phone:</strong> +216 53 789 000<br>
+              <strong>Email:</strong> contact@colombus-capital.com<br>
+            </p>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Useful Links</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.bct.gov.tn/bct/siteprod/documents/Reg_des_Chges_ao13.pdf">FX Regulation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.globalfxc.org/docs/fx_global.pdf">FX Global Code</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.cbf.org.tn/circulaires-et-notes-2/">Circular and Notes</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Services</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Transparent Pricing</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">FX Workflow Automation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Low Cost Execution</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Social Networks</h4>
+            <p>Keep connected on our social media</p>
+            <div class="social-links mt-3">
+              <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+              <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container footer-bottom clearfix">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Colombus Capital</span></strong>. All Rights Reserved
+      </div>
+    </div>
+  </footer>
+
+  <div id="preloader"></div>
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+ <script>
+document.getElementById('giveRateBtn').addEventListener('click', function() {
+  var currency = document.querySelector('select[name="currency"]').value;
+  var amountInput = document.getElementById('amount').value;
+
+  // Parse the amount as a float after removing commas
+  var amount = parseFloat(amountInput.replace(/,/g, ''));
+  if (isNaN(amount) || amount <= 0) {
+    alert('Please enter a valid amount.');
+    return;
+  }
+  fetchFXRate(currency, amount);
+});
+
+function fetchFXRate(currency, amount) {
+  // Include the currency in the API URL
+  var apiURL = `/live-rates?currency=${currency}`;
+
+  fetch(apiURL)
+    .then(response => response.json())
+    .then(data => {
+      // Assuming the "XE" rate is the one we're interested in for this example
+      var rate = parseFloat(data.rates.XE);
+      var convertedAmount = rate * amount;
+      var perMid = Math.random();
+      var perMark = 1 - perMid;
+      var midrate = rate - 0.005;
+      var fees = 0.01 * convertedAmount;
+      var average = (perMid * rate + perMark * midrate);
+
+      // Update the DOM elements with the calculated values
+      updateElement('rateValue', rate.toFixed(4));
+      updateElement('convertedAmount', convertedAmount.toFixed(2));
+      updateElement('midrate', midrate.toFixed(4));
+      updateElement('perMid', (perMid * 100).toFixed(2) + '%');
+      updateElement('perMark', (perMark * 100).toFixed(2) + '%');
+      updateElement('average', average.toFixed(4));
+      updateElement('fees', fees.toFixed(2));
+      updateSummary();
+    })
+    .catch(error => {
+      console.error('Error fetching FX rate:', error);
+    });
+}
+
+function updateElement(elementId, text) {
+  var element = document.getElementById(elementId);
+  if (element) {
+    element.innerText = text;
+  } else {
+    console.error('Element not found:', elementId);
+  }
+}
+
+function updateSummary() {
+  // Fetch the updated values for currency, transaction type, amount, etc.
+  let transactionType = document.querySelector('input[name="transaction_type"]:checked').value;
+  let amount = document.getElementById('amount').value;
+  let currencyLabel = document.querySelector('select[name="currency"]').selectedOptions[0].text;
+  let bankAccount = document.getElementById('bank-account').value;
+  let valueDate = document.getElementById('value-date').value;
+  let rate = document.getElementById('rateValue').innerText;
+  let convertedAmount = document.getElementById('convertedAmount').innerText;
+  let midrate = document.getElementById('midrate').innerText;
+  let perMid = document.getElementById('perMid').innerText;
+  let perMark = document.getElementById('perMark').innerText;
+  let average = document.getElementById('average').innerText;
+  let fees = document.getElementById('fees').innerText;
+
+  // Adjust the currency display based on the selected option
+  let currencyCode = currencyLabel.split(" ")[0]; // Extract the currency code directly from the option text
+
+  // Format the value date for display
+  let dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  let formattedDate = valueDate ? new Date(valueDate).toLocaleDateString(undefined, dateOptions) : 'N/A';
+
+  // Construct and update the summary text
+  let summaryText = `I hereby confirm that I wish to <strong>${transactionType}</strong> the amount of <strong>${amount} ${currencyCode}</strong>, `;
+  summaryText += `scheduled for the value date of <strong>${formattedDate}</strong>, `;
+  summaryText += `to be transferred to the bank account number <strong>${bankAccount}</strong>. `;
+  summaryText += `Based on the current rate of <strong>${rate}</strong>, the converted amount is <strong>${convertedAmount}</strong>. `;
+  summaryText += `The transaction will be executed with an average rate of <strong>${average}</strong>, `;
+  summaryText += `including approximations of <strong>${perMark}</strong> for market execution and <strong>${perMid}</strong> for P2P transactions. `;
+  summaryText += `I acknowledge these rates are approximations, and the true values will be confirmed tomorrow at 10am for this order. `;
+  summaryText += `I consent to this transaction, understanding all its terms and conditions, including the estimated fees of <strong>${fees}</strong>.`;
+
+  document.getElementById('summary').innerHTML = summaryText;
+}
+</script>
+
+
+<script>
+// Declare a variable in a broader scope to hold formData
+let globalFormData = null;
+
+function getCurrentTime() {
+    return new Date().toISOString();
+}
+
+function showCustomAlert(message, onConfirm) {
+    document.getElementById('customAlertMessage').innerText = message;
+    const confirmBtn = document.getElementById('confirmBtn');
+    confirmBtn.onclick = onConfirm; // Set the confirmation action
+    document.getElementById('customAlertModal').style.display = 'block';
+}
+
+function closeCustomAlert() {
+    document.getElementById('customAlertModal').style.display = 'none';
+}
+
+function submitOrder() {
+    // Create FormData object with form data
+    let formData = new FormData();
+    formData.append('transaction_type', document.querySelector('input[name="transaction_type"]:checked').value);
+    formData.append('amount', document.getElementById('amount').value);
+    formData.append('currency', document.querySelector('select[name="currency"]').value);
+    formData.append('submission_time', getCurrentTime());
+    formData.append('value_date', document.getElementById('value-date').value);
+    formData.append('bank_account', document.getElementById('bank-account').value);
+    formData.append('reference', document.getElementById('reference').value);
+
+    // Store formData in global variable for access in confirm action
+    globalFormData = formData;
+
+    // Show custom alert with confirmation button
+    showCustomAlert('Please confirm your order submission.', function() {
+        submitFormData(); // Call submitFormData on confirm
+    });
+}
+
+function submitFormData() {
+    fetch('/submit_order', {
+        method: 'POST',
+        body: globalFormData
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log(data); // Log the response from the server
+        window.location.reload(); // Reload the page or handle as needed
+    })
+    .catch(error => console.error('Error:', error));
+    closeCustomAlert(); // Close the alert modal after submission
+}
+
+</script>
+
+
+
+  <script>
+
+  function deleteOrder(orderReference) {
+  showConfirmationModal(orderReference);
+}
+
+function showConfirmationModal(orderReference) {
+  currentOrderReference = orderReference; // Store the current order reference
+  document.getElementById('confirmationModal').style.display = 'block';
+}
+
+function closeConfirmationModal() {
+  document.getElementById('confirmationModal').style.display = 'none';
+}
+
+function confirmDelete() {
+  closeConfirmationModal();
+  // Execute the delete operation
+  fetch('/delete_order/' + encodeURIComponent(currentOrderReference), { method: 'DELETE' })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data.message);
+      if (data.success) {
+        // Reload the page after successful deletion
+        window.location.reload();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred while deleting the order.'); // Show error message on fetch failure
+    });
+}
+
+  function modifyOrder(orderId) {
+    console.log('Modify Order:', orderId);
+    // Add your logic to modify the order
+  }
+</script>
+
+  <script>
+   fetch('/data_for_chart')
+  .then(response => response.json())
+  .then(data => {
+    const ctx = document.getElementById('tradedAmountsChart').getContext('2d');
+    const tradedAmountsChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.months,
+        datasets: [{
+          label: 'Total Amount Traded',
+          data: data.amounts,
+          backgroundColor: '#020838',
+          borderColor: '#020838',
+          borderWidth: 1,
+          borderRadius: 5, // Rounded corners for bars
+          barPercentage: 0.6, // Adjust bar thickness
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              display: false, // Remove Y-axis grid lines
+            },
+            ticks: {
+              color: '#020838', // Change Y-axis tick color
+            }
+          },
+          x: {
+            grid: {
+              display: false, // Remove X-axis grid lines
+            },
+            ticks: {
+              color: '#020838', // Change X-axis tick color
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#020838', // Change legend text color
+            }
+          },
+          tooltip: {
+            enabled: true,
+            mode: 'index',
+            intersect: false,
+            bodyFontColor: '#020838',
+            titleFontColor: '#020838',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            bodyFontSize: 16,
+            titleFontSize: 14,
+            cornerRadius: 6
+          }
+        }
+      }
+    });
+  });
+  </script>
+
+  <script>
+    function generateRandomNumber(length) {
+        return Math.floor(Math.random() * (Math.pow(10, length) - Math.pow(10, length - 1))) + Math.pow(10, length - 1);
+    }
+
+    function generateReference() {
+        const prefix = 'TN';
+        const randomDigits = generateRandomNumber(6);
+        const randomLetters = String.fromCharCode(65 + Math.floor(Math.random() * 26)) +
+                              String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        document.getElementById('reference').value = prefix + randomDigits+randomLetters;
+    }
+
+    document.getElementById('bank-account').addEventListener('change', function() {
+        if (!document.getElementById('reference').value) {
+            generateReference();
+        }
+    });
+</script>
+
+  <script>
+    document.getElementById('logoutButton').addEventListener('click', function() {
+        window.location.href = '/logout'; // Redirects the user to the Flask logout route
+    });
+  </script>
+<script>
+  // Select all elements containing numbers
+  var numberElements = document.querySelectorAll('body *');
+
+  // Loop through each element and format numbers
+  numberElements.forEach(function(element) {
+    // Match numbers using regular expression
+    var text = element.innerHTML;
+    var formattedText = text.replace(/\b(\d+)\b(?=\.\d+)/g, function(match, number) {
+      // Add space as a thousands separator
+      return number.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1 ');
+    });
+    // Update the content of the element with formatted text
+    element.innerHTML = formattedText;
+  });
+</script>
+
+<!-- Vendor JS Files -->
+  <script src="{{ url_for('user_bp.static', filename='vendor/aos/aos.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/waypoints/noframework.waypoints.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/php-email-form/validate.js') }}"></script>
+
+  <!-- Template Main JS File -->
+  <script src="{{ url_for('user_bp.static', filename='js/main.js') }}"></script>
+
+</body>
+</html>

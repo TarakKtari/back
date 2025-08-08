@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Colombus Capital</title>
+
+  <!-- Replace with your favicon link -->
+<link href="{{ url_for('user_bp.static', filename='img/white.png')}}" rel="icon">
+  <link href="{{ url_for('user_bp.static', filename='img/apple-touch-icon.png')}}" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vendor CSS Files -->
+  <link href="{{ url_for('user_bp.static', filename='vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}"rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/boxicons/css/boxicons.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/glightbox/css/glightbox.min.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/remixicon/remixicon.css')}}" rel="stylesheet">
+  <link href="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.css')}}" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link rel="stylesheet" href="{{ url_for('user_bp.static', filename='css/dashboard.css') }}">
+    <!-- Include Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <style>
+    input[type="file"] {
+      outline: none;
+      padding: 4px;
+      margin: -4px;
+      position: relative;
+    }
+
+    input[type="file"]::file-selector-button {
+      width: 136px;
+      color: transparent;
+      border-radius: 7px;
+      padding: 0 16px;
+      height: 30px;
+      cursor: pointer;
+      background-color: white;
+      border: 2px solid #f3f4f6;
+      box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+      margin-right: 0 16px;
+      transition: background-color 200ms;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background-color: #f3f4f6;
+    }
+
+    input[type="file"]::file-selector-button:active {
+      background-color: #e5e7eb;
+    }
+
+    input[type="file"]::before {
+      content: "Upload File";
+      position: absolute;
+      pointer-events: none;
+      left: 40px;
+      margin-top: 5px;
+      color: #020838;
+    }
+
+    input[type="file"]::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      left: 16px;
+      margin-top: 5px;
+      height: 20px;
+      width: 20px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230964B0'%3E%3Cpath d='M18 15v3H6v-3H4v3c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-3h-2zM7 9l1.41 1.41L11 7.83V16h2V7.83l2.59 2.58L17 9l-5-5-5 5z'/%3E%3C/svg%3E");
+    }
+
+    input[type="file"]:focus-within::file-selector-button,
+    input[type="file"]:focus::file-selector-button {
+      outline: 2px solid #020838;
+      outline-offset: 2px;
+    }
+
+     .file-upload-btn {
+    border-radius: 7px;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: #CBD1DB;
+    color: #020838;
+    border: none;
+    height: 30px;
+    width: 80px;
+    transition: background-color 200ms;
+    padding: 0 16px;
+    margin-right: 0 16px;
+  }
+
+  .file-upload-btn:hover {
+    background-color: #CBD1DB;
+  }
+
+  .file-upload-btn:active {
+    background-color: #CBD1DB;
+  }
+
+  .template-download-link {
+  color:#020838;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+  </style>
+
+      <script type="text/javascript">
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const error = params.get('error');
+            if (error) {
+                // Display the error message as an alert or inject it into the page
+                alert(error); // Simple alert, replace with your preferred method
+            }
+        };
+    </script>
+</head>
+<body>
+  <!-- Header Section -->
+  <header id="header" class="fixed-top header-inner-pages">
+    <div class="container d-flex align-items-center">
+      <a href="{{ url_for('user_bp.home') }}" class="logo me-auto"><img src="{{ url_for('user_bp.static', filename='img/white.png')}}" class="img-fluid" alt="CC"></a>
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link scrollto active" href="{{ url_for('user_bp.main') }}">Main</a></li>
+          <li><a class="nav-link scrollto active" href="#">Dashboard</a></li>
+          <li><a class="nav-link scrollto" href="{{ url_for('user_bp.bank') }}">Bank Accounts</a></li>
+          <li><a class="nav-link scrollto" href="{{ url_for('user_bp.order') }}">Order</a></li>
+          <li><button type="button" class="getstarted scrollto" id="logoutButton" style="color: #071C42;background: #F3F5FA; font-family: 'Jost' font-weight: 800;">Logout</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main content of your page here -->
+  <div class="bg-gray-100" style="padding-bottom: 50px; padding-top: 100px;">
+        <div id="app" class="container mx-auto mt-5">
+            <!-- Upload Form -->
+            <div style="position: absolute; top: 100px; right: 100px;">
+              <form action="/upload" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".xlsx" required>
+                <input type="submit" value="Upload" style="display: none;"> <!-- Hide the default submit button -->
+                <!-- Custom styled button for submitting the form -->
+                <button type="submit" class="file-upload-btn">Send</button>
+                  <a href="/download-template-sec" class="template-download-link">Need a template?</a>
+              </form>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                <!-- Spot Rates -->
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h2 class="font-semibold mb-2">Spot Rates</h2>
+                    <div class="flex flex-wrap gap-2" style="padding-top: 20px; color: #020838;">
+                        {% for currency, rate in currency_rates.items() %}
+                        <div>
+                            <button onclick="updateGraph('{{ currency }}')" class="unstyled-button">
+                                <span style="font-weight: bold; color: #020838;">{{ currency }}/TND</span> - {{ rate }}
+                            </button>
+
+                            <div class="currency-info" data-currency="{{ currency }}">
+                                <div class="flex flex-col mt-2" id="decision-container-{{ currency }}">
+                                </div>
+                                <button onclick="toggleDropdown('{{ currency }}')" class="more-button">
+                                      More <i class="bx bx-chevron-down" aria-hidden="true"></i>
+                                </button>
+                            </div>
+
+                            <div id="{{ currency }}-dropdown" class="dropdown-content hidden">
+                                <!-- Slider for selecting the period -->
+                                <div class="period-slider-container">
+                                  <label for="{{ currency }}-slider" class="slider-label">Compare against any period up to 1 year:</label>
+                                  <input type="range" min="1" max="365" value="30" class="slider" id="{{ currency }}-slider" onchange="updateMetrics('{{ currency }}')">
+                                  <div class="slider-labels">
+                                    <span style="font-weight:bold;">Last day</span>
+                                    <span style="font-weight:bold;">Last year</span>
+                                  </div>
+                                </div>
+                                <!-- Container for the metrics -->
+                                <div id="{{ currency }}-metrics">
+                                    <!-- Metrics will be updated here -->
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- Graph -->
+                <div class="bg-white p-4 rounded-lg shadow" style="width: 830px;">
+                    <h2 class="font-semibold mb-2">Historical - 1M</h2>
+                    <!-- Graph placeholder -->
+                    <div id="chartContainer" style="position: relative; height:40vh; width:53vw">
+                        <canvas id="currencyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+      <div class="container mx-auto mt-5">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                <!-- Open Transactions -->
+                <div class="bg-white p-4 rounded-lg shadow lg:col-span-2" style="width: 1260px;">
+                    <h2 class="font-semibold mb-2">Open Positions</h2>
+                    <div class="scroll-container">
+                      <div class="scrolling-table">
+                        <table class="table" style="padding-top: 30px;">
+                          <thead>
+                            <tr>
+                              <th>Exposure</th>
+                              <th class="value-dates-header">Total Exposure</th>
+                              {% for date in date_list %}
+                                <th>{{ date }}</th>
+                              {% endfor %}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for row in rows %}
+                              <tr class="main-row" data-toggle="closed" onclick="drillDown(this)">
+                                <td>
+                                  <span class="drill-down-arrow"></span>Net {{ row.name }}
+                                </td>
+                                <td class="value-dates-data">{{ row.all_dates_sum }}</td>
+                                {% for date_sum in row.date_sums %}
+                                  <td>{{ date_sum }}</td>
+                                {% endfor %}
+                              </tr>
+                              <!-- Sub-rows for 'export' and 'import' -->
+                              {% for sub in row.sub %}
+                                <tr class="hidden-row">
+                                  <td class="sub-row">{{ sub.name }}</td>
+                                  <td class="value-dates-data">{{ sub.all_dates_sum }}</td>
+                                  {% for sub_date_sum in sub.date_sums %}
+                                    <td class="sub-row">{{ sub_date_sum }}</td>
+                                  {% endfor %}
+                                </tr>
+                              {% endfor %}
+                            {% endfor %}
+                          </tbody>
+                        </table>
+
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+  </div>
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-3 col-md-6 footer-contact">
+            <h3>Colombus Capital</h3>
+            <p>
+              Immeuble Tanit <br>
+              Rue d’Erable<br>
+              Lac II <br><br>
+              <strong>Phone:</strong> +216 53 789 000<br>
+              <strong>Email:</strong> contact@colombus-capital.com<br>
+            </p>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Useful Links</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.bct.gov.tn/bct/siteprod/documents/Reg_des_Chges_ao13.pdf">FX Regulation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.globalfxc.org/docs/fx_global.pdf">FX Global Code</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.cbf.org.tn/circulaires-et-notes-2/">Circular and Notes</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Services</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Transparent Pricing</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">FX Workflow Automation</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="#">Low Cost Execution</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Our Social Networks</h4>
+            <p>Keep connected on our social media</p>
+            <div class="social-links mt-3">
+              <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+              <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+              <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>
+              <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container footer-bottom clearfix">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Colombus Capital</span></strong>. All Rights Reserved
+      </div>
+    </div>
+  </footer><!-- End Footer -->
+
+  <div id="preloader"></div>
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <script>
+  // Define an array of colors for the lines
+  const lineColors = {
+    'USD': 'rgb(2,8,56)',
+    'EUR': 'rgb(117, 117, 117)',
+    'JPY': 'rgb(54, 162, 235)',
+  };
+
+  // Update the graph with the selected currency and its corresponding color
+  function updateGraph(currency) {
+    fetch(`/currency-rates-historical/${currency}`)
+      .then(response => response.json())
+      .then(data => {
+        const ctx = document.getElementById('currencyChart').getContext('2d');
+        const currencyColor = lineColors[currency] || 'rgb(201, 203, 207)';
+
+        if (window.myChart) {
+          window.myChart.destroy();
+        }
+
+        window.myChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: Object.keys(data),
+            datasets: [{
+              label: `${currency}/TND`,
+              data: Object.values(data),
+              borderColor: currencyColor,
+              tension: 0.1
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: false
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+          }
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  }
+</script>
+
+  <script>
+    function toggleDropdown(currency) {
+    var dropdown = document.getElementById(currency + '-dropdown');
+    var metricsContainer = document.getElementById(currency + '-metrics');
+    var slider = document.getElementById(currency + '-slider');
+    var sliderValueDisplay = document.getElementById(currency + '-slider-value');
+
+    if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        dropdown.classList.add('shown');
+        // Load metrics with default 30 days period
+        loadMetrics(currency, 30);
+    } else {
+        dropdown.classList.add('hidden');
+        dropdown.classList.remove('shown');
+    }
+
+    // Update slider value display
+    slider.oninput = function() {
+        sliderValueDisplay.innerText = this.value;
+    };
+}
+
+function updateMetrics(currency) {
+    var slider = document.getElementById(currency + '-slider');
+    var period = slider.value; // Get the selected period from the slider
+    loadMetrics(currency, period); // Load metrics for the selected period
+}
+
+function loadMetrics(currency, period) {
+    var metricsContainer = document.getElementById(currency + '-metrics');
+    // Fetch metrics from the Flask route
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/metrics/' + currency + '?period=' + period);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var response = JSON.parse(xhr.responseText);
+            // Populate the metrics container with the received metrics
+            metricsContainer.innerHTML = `
+                <div class="toggle-section">
+                    <p class="rate-text" style="font-size:15px;">Compared to rates over last <span style="font-weight:bold; font-size:15px;">${period}</span> days this is:</p>
+                    <div class="rate-comparison-container">
+                      <div class="rate-text">Cheaper than <span id="rate-percentage" style="font-weight: bold; font-size:18px;">${response.percentage_cheaper_than_average}%</span> of time</div>
+                      <div class="rate-bar">
+                        <div class="rate-bar-fill" style="width: ${response.percentage_cheaper_than_average}%;">
+                          <span class="rate-bar-marker"></span>
+                        </div>
+                      </div>
+                      <div class="rate-labels">
+                        <span class="rate-lowest" style="font-weight:400;">Cheapest: ${response.cheapest}</span>
+                        <span class="rate-highest" style="font-weight:400;">Most Expensive: ${response.most_expensive}</span>
+                      </div>
+                    </div>
+                    <p class="rate-text" style="font-size:15px;">Potential to move is <span style="font-weight:bold; font-size:15px;">${response.potential_to_move}</span></p>
+                    <p class="rate-text" style="font-size:15px;">Some currencies can move a lot and you can save by prebooking early. </p>
+                </div>
+            `;
+        }
+    };
+    xhr.send();
+}
+
+  </script>
+
+  <script>
+  function scroll(direction) {
+    var container = document.querySelector('.scrolling-table');
+    container.scrollLeft += direction * 100; // Adjust the multiplier (100) to change scroll distance
+  }
+</script>
+
+  <script>
+      function drillDown(element) {
+        var toggleState = element.getAttribute('data-toggle');
+        var nextRow = element.nextElementSibling;
+        while (nextRow && nextRow.classList.contains('hidden-row')) {
+            nextRow.style.display = toggleState === 'closed' ? 'table-row' : 'none';
+            nextRow = nextRow.nextElementSibling;
+        }
+        element.setAttribute('data-toggle', toggleState === 'closed' ? 'open' : 'closed');
+    }
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Find all the currency info containers
+      const currencyContainers = document.querySelectorAll('.currency-info');
+
+      // For each currency container, call updateDecision with the appropriate currency code
+      currencyContainers.forEach(container => {
+        const currencyCode = container.getAttribute('data-currency');
+        updateDecision(currencyCode);
+      });
+    });
+
+function updateDecision(currency) {
+  fetch('/metrics/' + currency)
+    .then(response => response.json())
+    .then(data => {
+      // Find the decision container for this specific currency
+      const decisionContainer = document.getElementById('decision-container-' + currency);
+      decisionContainer.innerHTML = `
+        <div class="decision-text mb-1">
+          Rates are <strong>${data.decision.toUpperCase()}</strong> compared to the last 30 days.
+        </div>
+      `;
+    })
+    .catch(error => {
+      console.error('Error fetching decision for currency ' + currency + ':', error);
+    });
+}
+  </script>
+
+  <script>
+    const ctx = document.getElementById('currChart').getContext('2d');
+    let chartInstance = null;
+
+    document.querySelectorAll('input[name="currency"]').forEach((elem) => {
+        elem.addEventListener('change', function(event) {
+            const currency = event.target.value;
+            updateChart(currency);
+        });
+    });
+
+    function updateChart(currency) {
+        // Fetch the chart data from the Flask backend
+        fetch(`/chart-data/?currency=${currency}`)
+            .then(response => response.json())
+            .then(data => {
+                if (chartInstance) {
+                    chartInstance.destroy(); // Destroy the old chart instance before creating a new one
+                }
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: data,
+                    options: {
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false // Removes the grid lines from the x-axis
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    display: false // Removes the grid lines from the y-axis
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true // Ensures the legend is displayed
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching chart data:', error));
+    }
+
+    // Initialize the chart with default currency
+    updateChart('EUR');
+  </script>
+
+  <script>
+    document.getElementById('logoutButton').addEventListener('click', function() {
+        window.location.href = '/logout'; // Redirects the user to the Flask logout route
+    });
+  </script>
+<script>
+  // Select all elements containing numbers
+  var numberElements = document.querySelectorAll('body *');
+
+  // Loop through each element and format numbers
+  numberElements.forEach(function(element) {
+    // Match numbers using regular expression
+    var text = element.innerHTML;
+    var formattedText = text.replace(/\b(\d+)\b(?=\.\d+)/g, function(match, number) {
+      // Add space as a thousands separator
+      return number.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1 ');
+    });
+    // Update the content of the element with formatted text
+    element.innerHTML = formattedText;
+  });
+</script>
+
+ <!-- Vendor JS Files -->
+  <script src="{{ url_for('user_bp.static', filename='vendor/aos/aos.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/swiper/swiper-bundle.min.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/waypoints/noframework.waypoints.js') }}"></script>
+  <script src="{{ url_for('user_bp.static', filename='vendor/php-email-form/validate.js') }}"></script>
+
+  <!-- Template Main JS File -->
+  <script src="{{ url_for('user_bp.static', filename='js/main.js') }}"></script>
+
+</body>
+</html>
