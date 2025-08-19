@@ -301,3 +301,16 @@ class ATMVol(db.Model):
     tau_days = db.Column(db.Integer, nullable=True)
     tau_years = db.Column(db.Float, nullable=True)
     __table_args__ = (db.UniqueConstraint('date', 'tenor', name='uix_date_tenor'),)
+
+
+class VolSurfaceSnapshot(db.Model):
+    __tablename__ = "vol_surface_snapshot"
+    id = db.Column(db.Integer, primary_key=True)
+    currency = db.Column(db.String(3), index=True, nullable=False)          # 'EUR' or 'USD'
+    option_type = db.Column(db.String(4), nullable=False)                   # 'CALL' or 'PUT'
+    transaction_type = db.Column(db.String(4), nullable=False)              # 'buy' or 'sell'
+    valuation_date = db.Column(db.Date, index=True, nullable=False)
+    spot_used = db.Column(db.Float, nullable=True)
+    points_json = db.Column(db.JSON, nullable=False)                        # [{"T":0.25,"sigma":0.18}, ...]
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

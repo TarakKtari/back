@@ -19,6 +19,234 @@ import requests
 from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
 from .templates import _make_excel
+import math
+
+from models import VolSurfaceSnapshot
+
+
+def _save_surface_snapshot(currency, option_type, transaction_type, valuation_date, spot, pts):
+    snap = VolSurfaceSnapshot(
+        currency=currency.upper().strip(),
+        option_type=option_type.upper().strip(),
+        transaction_type=transaction_type.lower().strip(),
+        valuation_date=valuation_date,
+        spot_used=spot,
+        points_json=[{"T": float(t), "sigma": float(s)} for (t, s) in sorted(pts)]
+    )
+    # deactivate older active snapshots for the tuple
+    VolSurfaceSnapshot.query.filter_by(
+        currency=snap.currency,
+        option_type=snap.option_type,
+        transaction_type=snap.transaction_type,
+        valuation_date=snap.valuation_date,
+        is_active=True
+    ).update({"is_active": False})
+    db.session.add(snap)
+    db.session.commit()
+    return snap
+
+def _load_active_surface(currency, option_type, transaction_type, valuation_date):
+    snap = (VolSurfaceSnapshot.query
+            .filter_by(currency=currency.upper().strip(),
+                       option_type=option_type.upper().strip(),
+                       transaction_type=transaction_type.lower().strip(),
+                       valuation_date=valuation_date,
+                       is_active=True)
+            .order_by(VolSurfaceSnapshot.created_at.desc())
+            .first())
+    if not snap or not snap.points_json:
+        raise ValueError("No active volatility surface for this tuple")
+    pts = sorted([(float(p["T"]), float(p["sigma"])) for p in snap.points_json], key=lambda x: x[0])
+    return pts, snap
+
+def _interp_sigma(pts, T_star):
+    if len(pts) == 1:
+        return pts[0][1]
+    Ts, Sig = zip(*pts)
+    if T_star <= Ts[0]:
+        return Sig[0]
+    if T_star >= Ts[-1]:
+        return Sig[-1]
+    import bisect
+    j = bisect.bisect_left(Ts, T_star)
+    T0, T1 = Ts[j-1], Ts[j]; S0, S1 = Sig[j-1], Sig[j]
+    return S0 + (S1 - S0) * (T_star - T0) / (T1 - T0)
+
+# canonical engine (do not modify this file)
+from option_pricer.volatility_pricer import (
+    get_db_connection,
+    get_latest_exchange_data,
+    strike_from_spot,
+    implied_volatility,
+    reverse_premium_from_vol,
+    garman_kohlhagen_price,
+    garman_kohlhagen_greeks,
+)
+
+def parse_date(s: str) -> date:
+    """Parse 'YYYY-MM-DD' -> date."""
+    return datetime.strptime(s, "%Y-%m-%d").date()
+
+def get_rates_at_T(currency_pair: str, T_years: float) -> tuple[float, float]:
+    """
+    Read the latest curve snapshot and interpolate rd, rf at T.
+    currency_pair: 'EUR/TND' or 'USD/TND'
+    """
+    conn = get_db_connection()
+    try:
+        data = get_latest_exchange_data(conn, currency_pair)
+        known = data["known_tenors"]
+        rd = float(np.interp(T_years, known, data["domestic_yields"]))
+        rf = float(np.interp(T_years, known, data["foreign_yields"]))
+        return rd, rf
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+# ---------- Admin premia fetch (currency/pair tolerant, case tolerant) ----------
+def fetch_admin_premia_rows(currency_or_pair: str, option_type: str, transaction_type: str):
+    """
+    Return ORM rows (PremiumRate) for the base currency ('EUR' or 'USD').
+    Accepts either 'EUR', 'USD' or pairs like 'EUR/TND', 'USD/TND'.
+    Matches option_type ('CALL'/'PUT') and transaction_type ('buy'/'sell') case-insensitively.
+    """
+    base = (currency_or_pair or "").split("/")[0].upper().strip()  # 'EUR/TND' -> 'EUR'
+    return (PremiumRate.query
+            .filter(func.upper(PremiumRate.currency) == base)
+            .filter(func.upper(PremiumRate.option_type) == option_type.upper().strip())
+            .filter(func.lower(PremiumRate.transaction_type) == transaction_type.lower().strip())
+            .all())
+
+
+# ---------------------------- RBAC helpers (robust) -----------------------------
+def _current_user():
+    uid = get_jwt_identity()
+    return User.query.get(uid)
+
+def _user_roles_lower(u) -> set[str]:
+    """
+    Resolve roles from either a single string field (u.role) or a collection (u.roles).
+    Returns all roles lowercased, e.g. {'admin', 'user'}.
+    """
+    if not u:
+        return set()
+    roles = []
+    # single role string
+    if hasattr(u, "role") and u.role:
+        roles.append(str(u.role))
+    # roles relationship/list (objects or strings)
+    if hasattr(u, "roles") and u.roles:
+        for r in u.roles:
+            roles.append(getattr(r, "name", str(r)))
+    return {r.lower() for r in roles if r}
+
+def _is_admin() -> bool:
+    return "admin" in _user_roles_lower(_current_user())
+
+def _role_required(*roles):
+    """
+    Decorator to enforce that the caller has at least one of the given roles.
+    Usage: @_role_required('admin')
+    """
+    allowed = {r.lower() for r in roles} if roles else set()
+    def deco(fn):
+        from functools import wraps
+        @wraps(fn)
+        def wrapper(*a, **k):
+            u = _current_user()
+            have = _user_roles_lower(u)
+            if not u or (allowed and not (have & allowed)):
+                # Include what we saw to simplify Postman debugging
+                return jsonify({
+                    "error": "Unauthorized",
+                    "required_roles": list(allowed) or ["(any)"],
+                    "user_roles": list(have)
+                }), 403
+            return fn(*a, **k)
+        return wrapper
+    return deco
+
+
+# ---------------------------- User redaction helper -----------------------------
+def _redact_for_user(payload: dict) -> dict:
+    """
+    Keep only the fields a normal end-user should see in pricing responses.
+    """
+    keep = {
+        "unit_price",
+        "annualized_pct_premium",
+        "non_annualized_pct_premium",
+        "currency",
+        "option_type",
+        "value_date",
+        "strike",
+        "derived_strike",
+        "forward_rate",
+    }
+    return {k: payload[k] for k in keep if k in payload}
+
+
+from option_pricer.volatility_pricer import strike_from_spot
+def _resolve_strike(user_strike, admin_strike, S, rd, rf, T):
+    if user_strike is not None:
+        return float(user_strike), False, "user"
+    if _is_admin() and admin_strike is not None:
+        return float(admin_strike), False, "admin"
+    return strike_from_spot(S, rd, rf, T), True, "irp"
+
+
+def _build_sigma_from_admin_premia(pair, option_type, transaction_type, S, K_star, T_star, valuation_date):
+    """
+    Build per-tenor implied vols from admin NON-annualized % premiums,
+    then linearly interpolate σ at T_star.
+    """
+    rows = fetch_admin_premia_rows(pair, option_type, transaction_type)
+    pts = []
+    for r in rows:
+        # DB schema uses days + non-annualized fraction
+        T_i = float(r.maturity_days) / 365.0
+        if not math.isfinite(T_i) or T_i <= 0:
+            continue
+
+        # curves at T_i (your get_rates_at_T takes (pair, T_years))
+        rd_i, rf_i = get_rates_at_T(pair, T_i)
+
+        # strike per row: admin strike if present else IRP from spot & curves
+        K_i = float(r.strike) if (r.strike is not None) else strike_from_spot(S, rd_i, rf_i, T_i)
+
+        # parity: stored admin % is NON-annualized → divide by T_i for solver
+        premium_non_ann = float(r.premium_percentage)
+        if premium_non_ann < 0:
+            continue
+        annualized_i = premium_non_ann / T_i
+
+        sigma_i = implied_volatility(
+            option_type.lower(), S=S, K=K_i, T=T_i, rd=rd_i, rf=rf_i,
+            annualized_premium=annualized_i
+        )
+        if sigma_i is not None and math.isfinite(sigma_i):
+            pts.append((T_i, float(sigma_i)))
+
+    if not pts:
+        raise ValueError("No solvable IV points")  # unchanged
+
+    # sort + linear interp on T
+    pts.sort()
+    Ts, Sig = zip(*pts)
+    if T_star <= Ts[0]:
+        sigma_star = Sig[0]
+    elif T_star >= Ts[-1]:
+        sigma_star = Sig[-1]
+    else:
+        import bisect
+        j = bisect.bisect_left(Ts, T_star)
+        T0, T1 = Ts[j-1], Ts[j]; S0, S1 = Sig[j-1], Sig[j]
+        sigma_star = S0 + (S1 - S0) * (T_star - T0) / (T1 - T0)
+
+    return float(sigma_star), pts
+
 
 
 # ============ Utility Functions ==================
@@ -237,6 +465,14 @@ def submit_order_or_option():
     option_type = data.get('option_type', '').upper()      
     user_strike = data.get('strike', None)                
 
+    # admin-typed strike (honored only if caller is admin)
+    admin_strike_raw = data.get("admin_strike")
+    try:
+        admin_strike = float(admin_strike_raw) if (_is_admin() and admin_strike_raw is not None) else None
+    except Exception:
+        return jsonify({"message": "admin_strike must be numeric"}), 400
+
+
     if not transaction_type or not currency or not value_date_str:
         debug_logs.append("Missing required fields (transaction_type, currency, value_date).")
         return jsonify({"message": "Missing required fields", "debug": debug_logs}), 400
@@ -356,69 +592,86 @@ def submit_order_or_option():
             computed_forward = calculate_forward_rate(spot_rate, yield_foreign, yield_domestic, days_diff)
             debug_logs.append(f"Computed forward rate: {computed_forward}")
 
-        # 3) Determine the effective strike (runs for BOTH admin_spot and else branches)
-        if user_strike is not None:
+            # Strike resolution: user > admin > IRP (ATM-forward)
             try:
-                final_strike = float(user_strike)
-                debug_logs.append(f"Using provided strike: {final_strike}")
-            except Exception as e:
-                debug_logs.append(f"Error parsing strike: {e}")
-                return jsonify({"message": "Strike must be numeric", "debug": debug_logs}), 400
-        else:
-            # Canonical strike-from-spot calculation
-            final_strike = strike_from_spot(
-                spot_rate,
-                yield_domestic,
-                yield_foreign,
-                T=days_diff / 365.0
+                parsed_user_strike = float(user_strike) if (user_strike is not None) else None
+            except Exception:
+                return jsonify({"message": "Strike must be numeric"}), 400
+
+            T = days_diff / 365.0  # we’ll reuse T consistently below
+            final_strike, derived_strike_flag, strike_src = _resolve_strike(
+                user_strike=parsed_user_strike,
+                admin_strike=admin_strike,          # honored only if caller is admin
+                S=spot_rate, rd=yield_domestic, rf=yield_foreign, T=T
             )
+
             debug_logs.append(f"Derived strike from spot: {final_strike}")
 
 
 
-        # 4) Determine moneyness by comparing computed forward and strike
-        tol = 0.01 * computed_forward
-        if option_type == "CALL":
-            if computed_forward > final_strike + tol:
-                moneyness = "in the money"
-            elif abs(computed_forward - final_strike) <= tol:
-                moneyness = "at the money"
-            else:
-                moneyness = "out of the money"
-        else:  # PUT
-            if computed_forward < final_strike - tol:
-                moneyness = "in the money"
-            elif abs(computed_forward - final_strike) <= tol:
-                moneyness = "at the money"
-            else:
-                moneyness = "out of the money"
+        # Forward is from spot & curves only (never 'forward = strike')
+        # computed_forward is already set via calculate_forward_rate(...) above
+
+        #4 Moneyness only if strike came from user or admin; not when IRP-derived
+        moneyness = None
+        if strike_src in ("user", "admin"):
+            tol = 0.01 * computed_forward  # 1% band
+            if option_type == "CALL":
+                if computed_forward > final_strike + tol:
+                    moneyness = "in the money"
+                elif abs(computed_forward - final_strike) <= tol:
+                    moneyness = "at the money"
+                else:
+                    moneyness = "out of the money"
+            else:  # PUT
+                if computed_forward < final_strike - tol:
+                    moneyness = "in the money"
+                elif abs(computed_forward - final_strike) <= tol:
+                    moneyness = "at the money"
+                else:
+                    moneyness = "out of the money"
         debug_logs.append(f"Final strike: {final_strike}, Moneyness: {moneyness}")
 
-        # 5) Canonical premium and Greeks calculation
+        # 5) Sigma source: admin override OR ACTIVE surface (no IV solving in user flow)
+        sigma = None
+        vol_points = None
+        if _is_admin() and data.get("volatility_input") is not None:
+            try:
+                sigma = float(data["volatility_input"])
+                debug_logs.append(f"Admin σ override: {sigma}")
+            except Exception as e:
+                return jsonify({"message": f"Invalid volatility_input: {e}", "debug": debug_logs}), 400
+        else:
+            try:
+                pts, snap = _load_active_surface(currency, option_type, transaction_type, today)
+                sigma = _interp_sigma(pts, T)
+                vol_points = pts
+                debug_logs.append(f"σ(T*) interpolated from active surface: {sigma}")
+            except Exception as e:
+                return jsonify({"message": f"No active volatility surface: {e}", "debug": debug_logs}), 422
 
-        T = days_diff / 365.0
-        try:
-            sigma = float(data.get("volatility_input"))
-        except Exception as e:
-            debug_logs.append(f"Missing or invalid volatility_input: {e}")
-            return jsonify({"message": "Volatility input required for option pricing", "debug": debug_logs}), 400
 
+        # Price via canonical module
         rev = reverse_premium_from_vol(
             option_type=option_type.lower(),
-            S=spot_rate,
-            K=final_strike,
-            T=T,
-            rd=yield_domestic,
-            rf=yield_foreign,
+            S=spot_rate, K=final_strike, T=T,
+            rd=yield_domestic, rf=yield_foreign,
             sigma=sigma
         )
 
-        computed_premium = amount * rev["Non_Annualized_%_Premium"]
-        debug_logs.append(f"Computed premium from vol_pricer: {computed_premium}")
+        # Greeks (admin diagnostics)
+        delta, gamma, theta = garman_kohlhagen_greeks(
+            option_type.lower(), spot_rate, final_strike, T, yield_domestic, yield_foreign, sigma
+        )
+
+        # Monetary premium in TND: notional (FCY) × unit price (TND/FCY)
+        computed_premium = amount * rev["Unit_Price"]
+
         debug_logs.append(f"Annualized % Premium: {rev['Annualized_%_Premium']}")
         debug_logs.append(f"Non-Annualized % Premium: {rev['Non_Annualized_%_Premium']}")
         debug_logs.append(f"Unit Price: {rev['Unit_Price']}")
-        debug_logs.append(f"Implied Volatility Input: {sigma}")
+        debug_logs.append(f"Implied Volatility Used: {sigma}")
+
 
 
 
@@ -490,19 +743,27 @@ def submit_order_or_option():
         debug_logs.append(f"Error saving audit log: {str(e)}")
         return jsonify({"message": "Error saving audit log", "debug": debug_logs}), 500
 
-    return jsonify({
+    payload = {
         "message": "Order/Option submitted successfully",
         "order_id": new_order.id_unique,
-        "premium": computed_premium,
-        "moneyness": moneyness,
+        "premium": computed_premium,                         # TND
         "forward_rate": computed_forward,
         "strike": final_strike,
-        "implied_volatility": sigma,
+        "derived_strike": (strike_src == "irp"),
+        "moneyness": moneyness,                              # may be None if IRP
         "annualized_pct_premium": rev["Annualized_%_Premium"],
         "non_annualized_pct_premium": rev["Non_Annualized_%_Premium"],
         "unit_price": rev["Unit_Price"],
+        # admin diagnostics:
+        "implied_volatility": sigma,
+        "greeks": {"delta": delta, "gamma": gamma, "theta": theta},
+        "rd": yield_domestic,
+        "rf": yield_foreign,
+        "vol_points_used": [{"T": t, "sigma": s} for (t, s) in (vol_points or [])],
         "debug": debug_logs
-    }), 201
+    }
+    return jsonify(payload if _is_admin() else _redact_for_user(payload)), 201
+
 
 
 def require_reference_if_needed(user: User, payload: dict):
@@ -1310,38 +1571,43 @@ def interpolate_prime(time_to_maturity, known_times, known_primes):
     }
 
 
+
 @user_bp.route('/orders/preview', methods=['POST'])
 @jwt_required()
 def preview_option():
     """
-    Preview an option order by computing the forward rate, premium, moneyness, and default strike.
-    This endpoint does NOT create an order.
+    Preview an option order by computing forward, strike, premiums, and (conditionally) moneyness.
+    This endpoint does NOT create an order. Users never provide sigma; admins may override.
     """
     data = request.get_json()
     if not data:
         return jsonify({"message": "No data provided"}), 400
+
+    # ---- parse inputs ----
     try:
-        amount = float(data.get("amount", 0))
-        transaction_type = data.get("transaction_type")
+        amount = float(data.get("amount", 0.0))
+        transaction_type = (data.get("transaction_type") or "").lower() or "buy"
         value_date_str = data.get("value_date")
-        currency = data.get("currency")
+        currency = (data.get("currency") or "").upper()
         bank_account = data.get("bank_account")
-        is_option = data.get("is_option", False)
-        option_type = data.get("option_type", "").upper()
-        strike = data.get("strike")
+        is_option = bool(data.get("is_option", False))
+        option_type = (data.get("option_type") or "").upper()
+        user_strike = data.get("strike")  # may be None
     except Exception as e:
         return jsonify({"message": f"Invalid data format: {e}"}), 400
 
     if not (transaction_type and value_date_str and currency and bank_account):
         return jsonify({"message": "Missing required fields"}), 400
-
-    try:
-        value_date = datetime.strptime(value_date_str, "%Y-%m-%d")
-    except Exception as e:
-        return jsonify({"message": "Invalid date format"}), 400
-
+    if option_type not in ("CALL", "PUT"):
+        return jsonify({"message": "Option type must be CALL or PUT"}), 400
     if not is_option:
         return jsonify({"message": "Preview is only available for options"}), 400
+
+    # ---- dates & market snapshot ----
+    try:
+        value_date = datetime.strptime(value_date_str, "%Y-%m-%d")
+    except Exception:
+        return jsonify({"message": "Invalid date format"}), 400
 
     today = datetime.today().date()
     exchange_data = ExchangeData.query.filter_by(date=today).first()
@@ -1349,119 +1615,131 @@ def preview_option():
         return jsonify({"message": "Exchange data for today not available"}), 400
 
     days_diff = (value_date.date() - today).days
+    if days_diff <= 0:
+        return jsonify({"message": "Value date must be in the future"}), 400
+    T = days_diff / 365.0
     period = get_yield_period(days_diff)
 
+    # ---- spot & yields ----
     admin_spot = data.get("spot")
     if admin_spot is not None:
         try:
             spot_rate = float(admin_spot)
         except Exception:
             return jsonify({"message": "Spot must be numeric"}), 400
-        if currency.upper() == 'USD':
-            yield_foreign = getattr(exchange_data, f"usd_{period[0]}m")
-        elif currency.upper() == 'EUR':
-            yield_foreign = getattr(exchange_data, f"eur_{period[0]}m")
+    else:
+        if currency == 'USD':
+            spot_rate = float(exchange_data.spot_usd)
+        elif currency == 'EUR':
+            spot_rate = float(exchange_data.spot_eur)
         else:
             return jsonify({"message": "Unsupported currency"}), 400
-        yield_domestic = getattr(exchange_data, f"tnd_{period[0]}m")
-        computed_forward = calculate_forward_rate(spot_rate, yield_foreign, yield_domestic, days_diff)
+
+    if currency == 'USD':
+        yield_foreign = float(getattr(exchange_data, f"usd_{period[0]}m"))
+    elif currency == 'EUR':
+        yield_foreign = float(getattr(exchange_data, f"eur_{period[0]}m"))
     else:
-        if currency.upper() == 'USD':
-            spot_rate = exchange_data.spot_usd
-            yield_foreign = getattr(exchange_data, f"usd_{period[0]}m")
-        elif currency.upper() == 'EUR':
-            spot_rate = exchange_data.spot_eur
-            yield_foreign = getattr(exchange_data, f"eur_{period[0]}m")
-        else:
-            return jsonify({"message": "Unsupported currency"}), 400
-        yield_domestic = getattr(exchange_data, f"tnd_{period[0]}m")
-        computed_forward = calculate_forward_rate(spot_rate, yield_foreign, yield_domestic, days_diff)
+        return jsonify({"message": "Unsupported currency"}), 400
+    yield_domestic = float(getattr(exchange_data, f"tnd_{period[0]}m"))
 
-    # Strike-from-spot rule
-    if strike is not None:
-        try:
-            strike_value = float(strike)
-        except Exception:
-            return jsonify({"message": "Strike must be numeric"}), 400
-    else:
-        strike_value = strike_from_spot(
-            spot_rate,
-            yield_domestic,
-            yield_foreign,
-            T=days_diff / 365.0
-        )
+    # ---- forward from spot & curves (never overwrite with strike) ----
+    forward_rate = strike_from_spot(spot_rate, yield_domestic, yield_foreign, T)
 
-    # Forward = strike for ATM forward pricing
-    computed_forward = strike_value
-
-    # Recalculate tolerance now that forward is final
-    tol = 0.01 * computed_forward
-
-    # Determine moneyness
-    if option_type == "CALL":
-        if computed_forward > strike_value + tol:
-            moneyness = "in the money"
-        elif abs(computed_forward - strike_value) <= tol:
-            moneyness = "at the money"
-        else:
-            moneyness = "out of the money"
-    elif option_type == "PUT":
-        if computed_forward < strike_value - tol:
-            moneyness = "in the money"
-        elif abs(computed_forward - strike_value) <= tol:
-            moneyness = "at the money"
-        else:
-            moneyness = "out of the money"
-    else:
-        return jsonify({"message": "Option type must be CALL or PUT"}), 400
-
-    # Time to maturity
-    T = days_diff / 365.0
-
+    # ---- strike resolution: user > admin > IRP ----
+    admin_strike = data.get("admin_strike")  # honored only for admins
     try:
-        sigma = float(data.get("volatility_input"))
+        admin_strike = float(admin_strike) if (_is_admin() and admin_strike is not None) else None
+    except Exception:
+        return jsonify({"message": "admin_strike must be numeric"}), 400
+    try:
+        user_strike = float(user_strike) if (user_strike is not None) else None
+    except Exception:
+        return jsonify({"message": "Strike must be numeric"}), 400
+
+    strike_value, derived_strike, strike_src = _resolve_strike(
+        user_strike=user_strike,
+        admin_strike=admin_strike,
+        S=spot_rate, rd=yield_domestic, rf=yield_foreign, T=T
+    )
+
+    # ---- sigma: users never set σ; admins may override; otherwise read from ACTIVE surface ----
+    sigma = None
+    vol_points = None
+
+    if _is_admin() and data.get("volatility_input") is not None:
+        try:
+            sigma = float(data["volatility_input"])
+        except Exception as e:
+            return jsonify({"message": f"Invalid volatility_input: {e}"}), 400
+    else:
+        try:
+            pts, snap = _load_active_surface(currency, option_type, transaction_type, today)
+            sigma = _interp_sigma(pts, T)
+            vol_points = pts
+        except Exception as e:
+            return jsonify({"message": f"No active volatility surface: {e}"}), 422
+
+
+    # ---- price & greeks via canonical module ----
+    try:
+        rev = reverse_premium_from_vol(
+            option_type=option_type.lower(),
+            S=spot_rate,
+            K=strike_value,
+            T=T,
+            rd=yield_domestic,
+            rf=yield_foreign,
+            sigma=sigma
+        )
+        delta, gamma, theta = garman_kohlhagen_greeks(
+            option_type.lower(), spot_rate, strike_value, T, yield_domestic, yield_foreign, sigma
+        )
     except Exception as e:
-        return jsonify({"message": f"Missing or invalid volatility_input: {e}"}), 400
+        return jsonify({"message": f"Pricing error: {e}"}), 500
 
-    # Premium calculation
-    rev = reverse_premium_from_vol(
-        option_type=option_type.lower(),
-        S=spot_rate,
-        K=strike_value,
-        T=T,
-        rd=yield_domestic,
-        rf=yield_foreign,
-        sigma=sigma
-    )
+    # ---- premium amount in TND: notional(FCY) × unit_price(TND/FCY) ----
+    premium_amount_tnd = amount * rev["Unit_Price"]
 
-    computed_premium = amount * rev["Non_Annualized_%_Premium"]
+    # ---- moneyness only for explicit (user/admin) strikes ----
+    moneyness = None
+    if strike_src in ("user", "admin"):
+        tol = 0.01 * forward_rate  # 1% tolerance around forward
+        if option_type == "CALL":
+            if forward_rate > strike_value + tol:
+                moneyness = "in the money"
+            elif abs(forward_rate - strike_value) <= tol:
+                moneyness = "at the money"
+            else:
+                moneyness = "out of the money"
+        else:  # PUT
+            if forward_rate < strike_value - tol:
+                moneyness = "in the money"
+            elif abs(forward_rate - strike_value) <= tol:
+                moneyness = "at the money"
+            else:
+                moneyness = "out of the money"
 
-    # Greeks calculation
-    delta, gamma, theta = garman_kohlhagen_greeks(
-        option_type.lower(),
-        spot_rate,
-        strike_value,
-        T,
-        yield_domestic,
-        yield_foreign,
-        sigma
-    )
-
-    return jsonify({
-        "forward_rate": computed_forward,
+    # ---- build response & redact for non-admins ----
+    payload = {
+        "forward_rate": forward_rate,
         "strike": strike_value,
+        "derived_strike": derived_strike,
         "moneyness": moneyness,
-        "premium": computed_premium,
+        "premium": premium_amount_tnd,
         "annualized_pct_premium": rev["Annualized_%_Premium"],
         "non_annualized_pct_premium": rev["Non_Annualized_%_Premium"],
         "unit_price": rev["Unit_Price"],
+        # admin diagnostics:
         "implied_volatility": sigma,
-        "greeks": {
-            "delta": delta,
-            "gamma": gamma,
-            "theta": theta
-        }
-    }), 200
+        "greeks": {"delta": delta, "gamma": gamma, "theta": theta},
+        "rd": yield_domestic,
+        "rf": yield_foreign,
+        "vol_points_used": [{"T": t, "sigma": s} for (t, s) in (vol_points or [])]
+    }
+    return jsonify(payload if _is_admin() else _redact_for_user(payload)), 200
+
+
 
 @user_bp.route('/get-interbank-rates', methods=['GET'])
 def get_interbank_rates():
@@ -1621,6 +1899,8 @@ def upload_orders():
 
 @user_bp.route('/load-atm-vols', methods=['POST'])
 @jwt_required()
+@_role_required('admin')
+
 def load_atm_vols_endpoint():
     """
     Load ATM volatility data from JSON file into the database.
@@ -1640,9 +1920,16 @@ def load_atm_vols_endpoint():
         return jsonify({'error': f'Error loading ATM vols: {str(e)}'}), 500
 
 
+
 @user_bp.route('/api/volatility-from-premium', methods=['POST'])
 @jwt_required()
+@_role_required('admin')  # <-- admin-only
 def volatility_from_premium():
+    """
+    ADMIN: Solve implied volatility from a single premium point, then price.
+    Premium input is NON-annualized fraction of foreign notional (e.g., 0.0315 for 3.15%).
+    Solver compares model %premium = unit_price / K to ANNUALIZED premium = input / T.
+    """
     from option_pricer.volatility_pricer import (
         get_db_connection,
         get_latest_exchange_data,
@@ -1652,69 +1939,90 @@ def volatility_from_premium():
         garman_kohlhagen_greeks,
     )
 
-    data = request.get_json()
-    required_fields = ["currency_pair", "option_type", "spot", "value_date", "premium_percentage"]
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"message": f"Missing required field: {field}"}), 400
+    data = request.get_json() or {}
+    required = ["currency_pair", "option_type", "spot", "value_date", "premium_percentage"]
+    missing = [k for k in required if k not in data]
+    if missing:
+        return jsonify({"message": f"Missing required field(s): {', '.join(missing)}"}), 400
 
     try:
-        currency_pair = data["currency_pair"].upper().strip()
-        option_type = data["option_type"].lower().strip()
-        if option_type not in ("call", "put"):
-            return jsonify({"message": "option_type must be 'CALL' or 'PUT'"}), 400
+        # ---- parse & validate inputs ----
+        currency_pair = str(data["currency_pair"]).upper().strip()
         if currency_pair not in ("EUR/TND", "USD/TND"):
             return jsonify({"message": "currency_pair must be 'EUR/TND' or 'USD/TND'"}), 400
 
-        spot = float(str(data["spot"]).strip())
-        strike = float(str(data.get("strike")).strip()) if data.get("strike") not in (None, "") else None
+        opt = str(data["option_type"]).lower().strip()
+        if opt not in ("call", "put"):
+            return jsonify({"message": "option_type must be 'CALL' or 'PUT'"}), 400
 
-        val_date = datetime.today()
+        spot = float(str(data["spot"]).strip())
+        if not np.isfinite(spot) or spot <= 0:
+            return jsonify({"message": "spot must be a positive number"}), 400
+
+        # optional admin-entered strike
+        strike_in = data.get("strike")
+        strike = float(strike_in) if strike_in not in (None, "") else None
+
+        # maturity
+        today_dt = datetime.today()
         maturity_date = datetime.strptime(str(data["value_date"]).strip(), "%Y-%m-%d")
-        T = (maturity_date - val_date).days / 365.0
+        T = (maturity_date - today_dt).days / 365.0
         if T <= 0:
             return jsonify({"message": "Maturity must be in the future"}), 400
 
-        # Annualized % premium (e.g., 0.0315 for 3.15%)
-        premium_input = float(str(data["premium_percentage"]).strip())
+        # NON-annualized % premium input (fraction of FCY notional)
+        prem_input_non_ann = float(str(data["premium_percentage"]).strip())
+        if not np.isfinite(prem_input_non_ann) or prem_input_non_ann < 0:
+            return jsonify({"message": "premium_percentage must be a non-negative number"}), 400
 
+        # ---- curves ----
         conn = get_db_connection()
         rates = get_latest_exchange_data(conn, currency_pair)
-        rd = float(np.interp(T, rates['known_tenors'], rates['domestic_yields']))
-        rf = float(np.interp(T, rates['known_tenors'], rates['foreign_yields']))
+        rd = float(np.interp(T, rates["known_tenors"], rates["domestic_yields"]))
+        rf = float(np.interp(T, rates["known_tenors"], rates["foreign_yields"]))
 
-        # Strike rule: use provided, else derive from spot
+        # ---- strike rule: admin-provided, else IRP/ATM-forward ----
+        derived_strike = False
         if strike is None:
             strike = strike_from_spot(spot, rd, rf, T)
+            derived_strike = True
 
-        # Solve for implied vol
+        # ---- annualization parity for the IV solver ----
+        # Admin input is NON-annualized -> solver needs ANNUALIZED:
+        # annualized_premium = (non_annualized_input / T)
+        annualized_premium = prem_input_non_ann / T
+
+        # ---- solve σ ----
         sigma = implied_volatility(
-            option_type, S=spot, K=strike, T=T,
-            rd=rd, rf=rf, annualized_premium=premium_input
+            opt, S=spot, K=strike, T=T, rd=rd, rf=rf, annualized_premium=annualized_premium
         )
-        if sigma is None or (isinstance(sigma, float) and not np.isfinite(sigma)):
+        if sigma is None or not (isinstance(sigma, (int, float)) and np.isfinite(sigma)):
             return jsonify({
                 "message": "Could not compute implied volatility for given inputs",
                 "details": {
                     "spot": spot, "strike": strike, "T_years": round(T, 6),
-                    "rd": rd, "rf": rf, "premium_percentage": premium_input
+                    "rd": rd, "rf": rf, "premium_percentage_non_annualized": prem_input_non_ann
                 }
             }), 422
 
-        theo_price = garman_kohlhagen_price(option_type, spot, strike, T, rd, rf, sigma)
-        delta, gamma, theta = garman_kohlhagen_greeks(option_type, spot, strike, T, rd, rf, sigma)
+        # ---- price & greeks (canonical) ----
+        theo_price = garman_kohlhagen_price(opt, spot, strike, T, rd, rf, sigma)
+        delta, gamma, theta = garman_kohlhagen_greeks(opt, spot, strike, T, rd, rf, sigma)
+
+        # % premiums (both forms), and unit price
         unit_price = theo_price
         annualized_pct_premium = unit_price / strike
         non_annualized_pct_premium = annualized_pct_premium * T
 
-        # ATM-forward reporting convention (diagnostic only)
-        forward_rate = strike
+        # ---- forward from carry (never overwrite with strike) ----
+        forward_rate = strike_from_spot(spot, rd, rf, T)
 
         return jsonify({
             "T_years": round(T, 6),
             "currency_pair": currency_pair,
             "spot": spot,
             "strike": strike,
+            "derived_strike": derived_strike,
             "forward_rate": forward_rate,
             "implied_volatility": sigma,
             "unit_price": unit_price,
@@ -1728,16 +2036,22 @@ def volatility_from_premium():
             "rf": rf
         }), 200
 
+    except ValueError as ve:
+        return jsonify({"message": f"Invalid numeric input: {ve}"}), 400
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
-
     finally:
-        if 'conn' in locals():
+        try:
             conn.close()
+        except Exception:
+            pass
+
+
 
 
 @user_bp.route('/api/implied-vol-from-db', methods=['POST'])
 @jwt_required()
+@_role_required('admin')  # <-- admin-only engine
 def implied_vol_from_db():
     from option_pricer.volatility_pricer import (
         get_db_connection,
@@ -1750,85 +2064,124 @@ def implied_vol_from_db():
     from models import PremiumRate
     import numpy as np
 
-    data = request.get_json()
+    data = request.get_json() or {}
     required = ["currency", "option_type", "transaction_type", "spot", "value_date"]
-    for field in required:
-        if field not in data:
-            return jsonify({"message": f"Missing required field: {field}"}), 400
+    missing = [f for f in required if f not in data]
+    if missing:
+        return jsonify({"message": f"Missing required field(s): {', '.join(missing)}"}), 400
 
     try:
-        currency = str(data["currency"]).upper().strip()            # "EUR" or "USD"
-        option_type = str(data["option_type"]).upper().strip()      # "CALL"/"PUT"
+        # ---- parse inputs ----
+        currency = str(data["currency"]).upper().strip()             # "EUR" or "USD"
+        option_type = str(data["option_type"]).upper().strip()       # "CALL"/"PUT"
+        if option_type not in ("CALL", "PUT"):
+            return jsonify({"message": "option_type must be CALL or PUT"}), 400
         transaction_type = str(data["transaction_type"]).lower().strip()  # "buy"/"sell"
         spot = float(str(data["spot"]).strip())
-        strike_in = data.get("strike")
-        strike = float(strike_in) if (strike_in not in (None, "")) else None
+        if not np.isfinite(spot) or spot <= 0:
+            return jsonify({"message": "spot must be a positive number"}), 400
 
-        # Target maturity
-        value_date = datetime.strptime(str(data["value_date"]).strip(), "%Y-%m-%d")
+        # target maturity
         today = datetime.today()
+        value_date = datetime.strptime(str(data["value_date"]).strip(), "%Y-%m-%d")
         T = (value_date - today).days / 365.0
         if T <= 0:
             return jsonify({"message": "Maturity must be in the future"}), 400
 
-        # 1) Fetch calibration rows
-        premium_rates = PremiumRate.query.filter_by(
+        # optional admin-provided target strike at T*
+        strike_in = data.get("strike")
+        strike_target = float(strike_in) if (strike_in not in (None, "")) else None
+
+        # ---- fetch calibration rows ----
+        premium_rows = PremiumRate.query.filter_by(
             currency=currency,
             option_type=option_type,
             transaction_type=transaction_type
         ).all()
-        if not premium_rates:
+        if not premium_rows:
             return jsonify({"message": "No premium entries found for this config"}), 404
 
-        # 2) Load yields once
+        # ---- curves ----
         conn = get_db_connection()
         rates = get_latest_exchange_data(conn, f"{currency}/TND")
-        known_tenors = rates['known_tenors']
+        known_tenors = rates["known_tenors"]
 
-        # 3) Compute sigma_i for each tenor from its premium %
+        # ---- build σ_i per row from non-annualized % premium ----
         T_list, sigma_list = [], []
-        for r in premium_rates:
+        for r in premium_rows:
             T_i = float(r.maturity_days) / 365.0
-            if T_i <= 0:
+            if not np.isfinite(T_i) or T_i <= 0:
                 continue
 
-            rd_i = float(np.interp(T_i, known_tenors, rates['domestic_yields']))
-            rf_i = float(np.interp(T_i, known_tenors, rates['foreign_yields']))
+            rd_i = float(np.interp(T_i, known_tenors, rates["domestic_yields"]))
+            rf_i = float(np.interp(T_i, known_tenors, rates["foreign_yields"]))
 
-            K_i = strike if strike is not None else strike_from_spot(spot, rd_i, rf_i, T_i)
-            premium_pct_i = float(r.premium_percentage)
+            # Per-row strike: admin-negotiated strike if present; else IRP/ATM-forward
+            K_i = float(r.strike) if (getattr(r, "strike", None) is not None) else strike_from_spot(spot, rd_i, rf_i, T_i)
+
+
+            # Parity: stored admin % is NON-annualized → divide by T_i for solver
+            premium_pct_i_non_ann = float(r.premium_percentage)
+            if premium_pct_i_non_ann < 0:
+                continue
+            annualized_i = premium_pct_i_non_ann / T_i
 
             sigma_i = implied_volatility(
                 option_type.lower(), S=spot, K=K_i, T=T_i, rd=rd_i, rf=rf_i,
-                annualized_premium=premium_pct_i
+                annualized_premium=annualized_i
             )
             if sigma_i is not None and np.isfinite(sigma_i):
                 T_list.append(T_i)
                 sigma_list.append(float(sigma_i))
 
-        if len(T_list) < 2:
-            return jsonify({
-                "message": "Insufficient valid points to interpolate volatility",
-                "details": {"points_found": len(T_list)}
-            }), 400
+        if len(T_list) == 0:
+            return jsonify({"message": "No valid calibration points for IV"}), 422
 
-        # 4) Interpolate sigma at target T
-        sigma = float(np.interp(T, T_list, sigma_list))
+        # sort pairs for interpolation
+        pairs = sorted(zip(T_list, sigma_list), key=lambda x: x[0])
+        T_sorted, sigma_sorted = zip(*pairs)
 
-        # 5) Rates & strike at target T
-        rd = float(np.interp(T, known_tenors, rates['domestic_yields']))
-        rf = float(np.interp(T, known_tenors, rates['foreign_yields']))
-        if strike is None:
-            strike = strike_from_spot(spot, rd, rf, T)
+        # ---- interpolate σ at target T (allow single-point fallback) ----
+        if len(T_sorted) == 1:
+            sigma = float(sigma_sorted[0])
+        else:
+            sigma = float(np.interp(T, T_sorted, sigma_sorted))
 
-        # 6) Price & greeks at target with interpolated vol
-        theo_price = garman_kohlhagen_price(option_type.lower(), spot, strike, T, rd, rf, sigma)
-        delta, gamma, theta = garman_kohlhagen_greeks(option_type.lower(), spot, strike, T, rd, rf, sigma)
-        annualized_pct_premium = theo_price / strike
+        # ---- rates & strike at target T ----
+        rd = float(np.interp(T, known_tenors, rates["domestic_yields"]))
+        rf = float(np.interp(T, known_tenors, rates["foreign_yields"]))
+
+        derived_strike = False
+        if strike_target is None:
+            strike_target = strike_from_spot(spot, rd, rf, T)  # ATM-forward
+            derived_strike = True
+
+        # ---- price & greeks at target with interpolated σ ----
+        theo_price = garman_kohlhagen_price(option_type.lower(), spot, strike_target, T, rd, rf, sigma)
+        delta, gamma, theta = garman_kohlhagen_greeks(option_type.lower(), spot, strike_target, T, rd, rf, sigma)
+
+        annualized_pct_premium = theo_price / strike_target
         non_annualized_pct_premium = annualized_pct_premium * T
 
-        forward_rate = strike  # ATM-forward reporting
-        pairs = sorted(zip(T_list, sigma_list), key=lambda x: x[0])
+        # forward is from carry, never overwritten by strike
+        forward_rate = strike_from_spot(spot, rd, rf, T)
+
+        # Optionally persist the (T, σ) points as the active surface for today
+        if bool(data.get("persist_surface", False)):
+            try:
+                _save_surface_snapshot(
+                    currency=currency,
+                    option_type=option_type,
+                    transaction_type=transaction_type,
+                    valuation_date=today.date(),     # snapshot date = today
+                    spot=spot,
+                    pts=pairs
+                )
+            except Exception as e:
+                # Don't fail pricing if persistence fails; just report it
+                # (You can make this strict later if you prefer)
+                pass
+
 
         return jsonify({
             "T_years": round(T, 6),
@@ -1836,7 +2189,8 @@ def implied_vol_from_db():
             "option_type": option_type,
             "transaction_type": transaction_type,
             "spot": spot,
-            "strike": strike,
+            "strike": strike_target,
+            "derived_strike": derived_strike,
             "forward_rate": forward_rate,
             "implied_volatility_interpolated": sigma,
             "unit_price": theo_price,
@@ -1850,9 +2204,12 @@ def implied_vol_from_db():
             "vol_points_used": [{"T": t, "sigma": s} for t, s in pairs]
         }), 200
 
+    except ValueError as ve:
+        return jsonify({"message": f"Invalid numeric input: {ve}"}), 400
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
-
     finally:
-        if 'conn' in locals():
+        try:
             conn.close()
+        except Exception:
+            pass

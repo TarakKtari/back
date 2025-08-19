@@ -105,6 +105,12 @@ def get_db_connection() -> psycopg2.extensions.connection:
 def get_latest_exchange_data(conn, currency_pair: str) -> Dict[str, Any]:
     cur = conn.cursor()
 
+    # Accept 'USD' or 'EUR' and map to 'USD/TND' or 'EUR/TND'
+    if currency_pair == "USD":
+        currency_pair = "USD/TND"
+    elif currency_pair == "EUR":
+        currency_pair = "EUR/TND"
+
     if currency_pair == "EUR/TND":
         yield_fields = [
             "TND Overnight", "1M TND", "3M TND", "6M TND", "1Y TND",
@@ -160,6 +166,12 @@ def backend_price_fx_options(
     try:
         if spot is None:
             raise ValueError("⚠️ Spot must be provided for pricing and Greek computations.")
+
+        # Accept 'USD' or 'EUR' and map to 'USD/TND' or 'EUR/TND'
+        if currency_pair == "USD":
+            currency_pair = "USD/TND"
+        elif currency_pair == "EUR":
+            currency_pair = "EUR/TND"
 
         data = get_latest_exchange_data(conn, currency_pair)
         known_tenors = data['known_tenors']
@@ -236,6 +248,12 @@ def interpolate_and_price(
         close_conn = True
 
     try:
+        # Accept 'USD' or 'EUR' and map to 'USD/TND' or 'EUR/TND'
+        if currency_pair == "USD":
+            currency_pair = "USD/TND"
+        elif currency_pair == "EUR":
+            currency_pair = "EUR/TND"
+
         data = get_latest_exchange_data(conn, currency_pair)
         known_tenors = data['known_tenors']
         rd = float(np.interp(target_maturity, known_tenors, data['domestic_yields']))
