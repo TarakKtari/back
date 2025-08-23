@@ -458,7 +458,8 @@ def submit_order_or_option():
     transaction_type = data.get('transaction_type')      
     amount = data.get('amount', 0)
     currency = data.get('currency')
-    value_date_str = data.get('value_date')                
+    # Accept canonical 'expiry_date' with legacy 'value_date' alias
+    value_date_str = data.get('value_date') or data.get('expiry_date')                
     bank_account = data.get('bank_account')
     is_option = data.get('is_option', False)
         # For options, also accept call/put and strike
@@ -534,6 +535,8 @@ def submit_order_or_option():
     moneyness = None
     computed_forward = None
     final_strike = None
+    strike_src = None
+    rev = None
 
     if is_option:
         if option_type not in ["CALL", "PUT"]:
@@ -545,7 +548,7 @@ def submit_order_or_option():
         days_diff = (value_date.date() - today).days
         debug_logs.append(f"Days until maturity: {days_diff}")
 
-        # 2) Retrieve today's exchange data to compute forward rate
+    # 2) Retrieve today's exchange data snapshot (for spot); yields will come from get_rates_at_T
         exchange_data = ExchangeData.query.filter_by(date=today).first()
         if not exchange_data:
             # Fallback: most recent snapshot
@@ -567,30 +570,27 @@ def submit_order_or_option():
             except Exception as e:
                 debug_logs.append(f"Error parsing admin spot: {e}")
                 return jsonify({"message": "Spot must be numeric", "debug": debug_logs}), 400
-            if currency.upper() == "USD":
-                yield_foreign = getattr(exchange_data, f"usd_{get_yield_period(days_diff)[0]}m")
-            elif currency.upper() == "EUR":
-                yield_foreign = getattr(exchange_data, f"eur_{get_yield_period(days_diff)[0]}m")
-            else:
-                debug_logs.append(f"Unsupported currency: {currency}")
-                return jsonify({"message": "Unsupported currency", "debug": debug_logs}), 400
-            yield_domestic = getattr(exchange_data, f"tnd_{get_yield_period(days_diff)[0]}m")
-            computed_forward = calculate_forward_rate(spot_rate, yield_foreign, yield_domestic, days_diff)
-            debug_logs.append(f"Computed forward rate (admin spot): {computed_forward}")
+            # Interpolate yields at T using the same engine as surface builder
+            T = days_diff / 365.0
+            rd, rf = get_rates_at_T(f"{currency.upper()}/TND", T)
+            yield_domestic, yield_foreign = rd, rf
+            computed_forward = strike_from_spot(spot_rate, yield_domestic, yield_foreign, T)
+            debug_logs.append(f"Computed forward rate (admin spot, interpolated curves): {computed_forward}")
 
         else:
             if currency.upper() == "USD":
                 spot_rate = exchange_data.spot_usd
-                yield_foreign = getattr(exchange_data, f"usd_{get_yield_period(days_diff)[0]}m")
             elif currency.upper() == "EUR":
                 spot_rate = exchange_data.spot_eur
-                yield_foreign = getattr(exchange_data, f"eur_{get_yield_period(days_diff)[0]}m")
             else:
                 debug_logs.append(f"Unsupported currency: {currency}")
                 return jsonify({"message": "Unsupported currency", "debug": debug_logs}), 400
-            yield_domestic = getattr(exchange_data, f"tnd_{get_yield_period(days_diff)[0]}m")
-            computed_forward = calculate_forward_rate(spot_rate, yield_foreign, yield_domestic, days_diff)
-            debug_logs.append(f"Computed forward rate: {computed_forward}")
+            # Interpolate yields at T using the same engine as surface builder
+            T = days_diff / 365.0
+            rd, rf = get_rates_at_T(f"{currency.upper()}/TND", T)
+            yield_domestic, yield_foreign = rd, rf
+            computed_forward = strike_from_spot(spot_rate, yield_domestic, yield_foreign, T)
+            debug_logs.append(f"Computed forward rate (interpolated curves): {computed_forward}")
 
             # Strike resolution: user > admin > IRP (ATM-forward)
             try:
@@ -598,7 +598,7 @@ def submit_order_or_option():
             except Exception:
                 return jsonify({"message": "Strike must be numeric"}), 400
 
-            T = days_diff / 365.0  # we’ll reuse T consistently below
+            # T already computed above
             final_strike, derived_strike_flag, strike_src = _resolve_strike(
                 user_strike=parsed_user_strike,
                 admin_strike=admin_strike,          # honored only if caller is admin
@@ -648,32 +648,80 @@ def submit_order_or_option():
                 vol_points = pts
                 debug_logs.append(f"σ(T*) interpolated from active surface: {sigma}")
             except Exception as e:
-                return jsonify({"message": f"No active volatility surface: {e}", "debug": debug_logs}), 422
+                # Fallback: build σ from admin NON-annualized % premia like the builder
+                try:
+                    sigma, pts = _build_sigma_from_admin_premia(
+                        pair=f"{currency}/TND",
+                        option_type=option_type,
+                        transaction_type=transaction_type,
+                        S=spot_rate,
+                        K_star=final_strike,
+                        T_star=T,
+                        valuation_date=today
+                    )
+                    vol_points = pts
+                    debug_logs.append("σ(T*) built from admin premia fallback")
+                except Exception as ee:
+                    # Proceed without a quote: allow order creation, mark as Pending, premium unknown
+                    sigma = None
+                    vol_points = None
+                    debug_logs.append("No active surface and admin premia fallback failed; proceeding without quote")
 
 
-        # Price via canonical module
-        rev = reverse_premium_from_vol(
-            option_type=option_type.lower(),
-            S=spot_rate, K=final_strike, T=T,
-            rd=yield_domestic, rf=yield_foreign,
-            sigma=sigma
+        # Price if sigma is available; otherwise skip pricing
+        rev = None
+        delta = gamma = theta = None
+        if sigma is not None:
+            rev = reverse_premium_from_vol(
+                    option_type=option_type.lower(),
+                    S=spot_rate, K=final_strike, T=T,
+                    rd=yield_domestic, rf=yield_foreign,
+                    sigma=sigma
+                )
+            # Greeks (admin diagnostics)
+            delta, gamma, theta = garman_kohlhagen_greeks(
+                    option_type.lower(), spot_rate, final_strike, T, yield_domestic, yield_foreign, sigma
+                )
+            # Monetary premium in TND: notional (FCY) × unit price (TND/FCY)
+            computed_premium = amount * (rev["Unit_Price"])
+            debug_logs.append(f"Annualized % Premium: {rev['Annualized_%_Premium']}")
+            debug_logs.append(f"Non-Annualized % Premium: {rev['Non_Annualized_%_Premium']}")
+            debug_logs.append(f"Unit Price: {rev['Unit_Price']}")
+            debug_logs.append(f"Implied Volatility Used: {sigma}")
+        else:
+            computed_premium = None
+            status = "Pending"  # ensure order is not marked Market without a quote
+
+    # Forward-only computation (no option pricing)
+    elif trade_type == "forward":
+        # Compute forward rate using interpolated curves like elsewhere
+        today = datetime.now().date()
+        days_diff = (value_date.date() - today).days
+        if days_diff <= 0:
+            debug_logs.append("Value date must be in the future for forward")
+            return jsonify({"message": "Value date must be in the future", "debug": debug_logs}), 400
+        T = days_diff / 365.0
+        exchange_data = ExchangeData.query.filter_by(date=today).first() or (
+            ExchangeData.query.order_by(ExchangeData.date.desc()).first()
         )
-
-        # Greeks (admin diagnostics)
-        delta, gamma, theta = garman_kohlhagen_greeks(
-            option_type.lower(), spot_rate, final_strike, T, yield_domestic, yield_foreign, sigma
-        )
-
-        # Monetary premium in TND: notional (FCY) × unit price (TND/FCY)
-        computed_premium = amount * rev["Unit_Price"]
-
-        debug_logs.append(f"Annualized % Premium: {rev['Annualized_%_Premium']}")
-        debug_logs.append(f"Non-Annualized % Premium: {rev['Non_Annualized_%_Premium']}")
-        debug_logs.append(f"Unit Price: {rev['Unit_Price']}")
-        debug_logs.append(f"Implied Volatility Used: {sigma}")
-
-
-
+        if not exchange_data:
+            return jsonify({"message": "Exchange data not available", "debug": debug_logs}), 400
+        admin_spot = data.get("spot")
+        if admin_spot is not None:
+            try:
+                spot_rate = float(admin_spot)
+            except Exception:
+                return jsonify({"message": "Spot must be numeric", "debug": debug_logs}), 400
+        else:
+            if currency.upper() == "USD":
+                spot_rate = float(exchange_data.spot_usd)
+            elif currency.upper() == "EUR":
+                spot_rate = float(exchange_data.spot_eur)
+            else:
+                return jsonify({"message": "Unsupported currency", "debug": debug_logs}), 400
+        rd, rf = get_rates_at_T(f"{currency.upper()}/TND", T)
+        computed_forward = strike_from_spot(spot_rate, rd, rf, T)
+        debug_logs.append(f"Forward computed: S={spot_rate}, rd={rd}, rf={rf}, T={T} -> F={computed_forward}")
 
     unique_id = str(uuid.uuid4())
     debug_logs.append(f"Generated unique order ID: {unique_id}")
@@ -698,7 +746,7 @@ def submit_order_or_option():
             is_option=is_option,
             option_type=option_type if is_option else None,
             strike=final_strike if is_option else None,
-            forward_rate=computed_forward if is_option else None,
+            forward_rate=computed_forward if trade_type in ("forward", "option") else None,
             moneyness=moneyness
         )
         debug_logs.append(f"Order/Option object created: {new_order}")
@@ -746,17 +794,18 @@ def submit_order_or_option():
     payload = {
         "message": "Order/Option submitted successfully",
         "order_id": new_order.id_unique,
-        "premium": computed_premium,                         # TND
+        "premium": computed_premium,                         # TND (None if quote unavailable)
         "forward_rate": computed_forward,
         "strike": final_strike,
-        "derived_strike": (strike_src == "irp"),
+    "derived_strike": ((strike_src == "irp") if strike_src is not None else None),
         "moneyness": moneyness,                              # may be None if IRP
-        "annualized_pct_premium": rev["Annualized_%_Premium"],
-        "non_annualized_pct_premium": rev["Non_Annualized_%_Premium"],
-        "unit_price": rev["Unit_Price"],
+    "annualized_pct_premium": (rev["Annualized_%_Premium"] if rev else None),
+    "non_annualized_pct_premium": (rev["Non_Annualized_%_Premium"] if rev else None),
+    "unit_price": (rev["Unit_Price"] if rev else None),
+        "quote_unavailable": (rev is None),
         # admin diagnostics:
         "implied_volatility": sigma,
-        "greeks": {"delta": delta, "gamma": gamma, "theta": theta},
+        "greeks": ({"delta": delta, "gamma": gamma, "theta": theta} if rev else None),
         "rd": yield_domestic,
         "rf": yield_foreign,
         "vol_points_used": [{"T": t, "sigma": s} for (t, s) in (vol_points or [])],
@@ -1587,7 +1636,8 @@ def preview_option():
     try:
         amount = float(data.get("amount", 0.0))
         transaction_type = (data.get("transaction_type") or "").lower() or "buy"
-        value_date_str = data.get("value_date")
+        # accept expiry_date (canonical) with value_date as legacy alias
+        value_date_str = data.get("expiry_date") or data.get("value_date")
         currency = (data.get("currency") or "").upper()
         bank_account = data.get("bank_account")
         is_option = bool(data.get("is_option", False))
@@ -1612,7 +1662,12 @@ def preview_option():
     today = datetime.today().date()
     exchange_data = ExchangeData.query.filter_by(date=today).first()
     if not exchange_data:
-        return jsonify({"message": "Exchange data for today not available"}), 400
+        # Fallback: use the most recent available snapshot
+        exchange_data = (
+            ExchangeData.query.order_by(ExchangeData.date.desc()).first()
+        )
+        if not exchange_data:
+            return jsonify({"message": "Exchange data not available"}), 400
 
     days_diff = (value_date.date() - today).days
     if days_diff <= 0:
@@ -1635,13 +1690,14 @@ def preview_option():
         else:
             return jsonify({"message": "Unsupported currency"}), 400
 
-    if currency == 'USD':
-        yield_foreign = float(getattr(exchange_data, f"usd_{period[0]}m"))
-    elif currency == 'EUR':
-        yield_foreign = float(getattr(exchange_data, f"eur_{period[0]}m"))
-    else:
+    # Use the same curve interpolation as the Admin Surface Builder
+    T = days_diff / 365.0
+    try:
+        rd, rf = get_rates_at_T(f"{currency}/TND", T)
+    except Exception:
         return jsonify({"message": "Unsupported currency"}), 400
-    yield_domestic = float(getattr(exchange_data, f"tnd_{period[0]}m"))
+    yield_domestic = float(rd)
+    yield_foreign = float(rf)
 
     # ---- forward from spot & curves (never overwrite with strike) ----
     forward_rate = strike_from_spot(spot_rate, yield_domestic, yield_foreign, T)
@@ -1678,7 +1734,36 @@ def preview_option():
             sigma = _interp_sigma(pts, T)
             vol_points = pts
         except Exception as e:
-            return jsonify({"message": f"No active volatility surface: {e}"}), 422
+            # Fallback to building σ from admin NON-annualized % premia, just like the builder
+            try:
+                sigma, pts = _build_sigma_from_admin_premia(
+                    pair=f"{currency}/TND",
+                    option_type=option_type,
+                    transaction_type=transaction_type,
+                    S=spot_rate,
+                    K_star=strike_value,
+                    T_star=T,
+                    valuation_date=today
+                )
+                vol_points = pts
+            except Exception as ee:
+                # Soft-fail preview: return forward/strike and mark quote as unavailable.
+                payload = {
+                    "forward_rate": forward_rate,
+                    "strike": strike_value,
+                    "derived_strike": derived_strike,
+                    "moneyness": None,
+                    "premium": None,
+                    "annualized_pct_premium": None,
+                    "non_annualized_pct_premium": None,
+                    "unit_price": None,
+                    "implied_volatility": None,
+                    "rd": yield_domestic,
+                    "rf": yield_foreign,
+                    "quote_unavailable": True,
+                    "message": "No active volatility surface and no admin premia fallback; preview quote unavailable. You can still submit the order."
+                }
+                return jsonify(payload if _is_admin() else _redact_for_user(payload)), 200
 
 
     # ---- price & greeks via canonical module ----
@@ -1940,10 +2025,11 @@ def volatility_from_premium():
     )
 
     data = request.get_json() or {}
-    required = ["currency_pair", "option_type", "spot", "value_date", "premium_percentage"]
-    missing = [k for k in required if k not in data]
-    if missing:
-        return jsonify({"message": f"Missing required field(s): {', '.join(missing)}"}), 400
+    # Accept either 'expiry_date' (preferred) or legacy 'value_date' for T*
+    required_base = ["currency_pair", "option_type", "spot", "premium_percentage"]
+    missing_base = [k for k in required_base if k not in data]
+    if missing_base:
+        return jsonify({"message": f"Missing required field(s): {', '.join(missing_base)}"}), 400
 
     try:
         # ---- parse & validate inputs ----
@@ -1963,9 +2049,12 @@ def volatility_from_premium():
         strike_in = data.get("strike")
         strike = float(strike_in) if strike_in not in (None, "") else None
 
-        # maturity
+        # maturity (T*): prefer 'expiry_date', fallback to legacy 'value_date'
         today_dt = datetime.today()
-        maturity_date = datetime.strptime(str(data["value_date"]).strip(), "%Y-%m-%d")
+        date_raw = (str(data.get("expiry_date") or data.get("value_date") or "").strip())
+        if not date_raw:
+            return jsonify({"message": "Missing required field: expiry_date (or value_date)"}), 400
+        maturity_date = datetime.strptime(date_raw, "%Y-%m-%d")
         T = (maturity_date - today_dt).days / 365.0
         if T <= 0:
             return jsonify({"message": "Maturity must be in the future"}), 400
@@ -2065,11 +2154,13 @@ def implied_vol_from_db():
     import numpy as np
 
     data = request.get_json() or {}
-    required = ["currency", "option_type", "transaction_type", "spot", "value_date"]
+    # value_date/expiry_date is optional: if absent, we build-only and return the calibrated nodes
+    required = ["currency", "option_type", "transaction_type", "spot"]
     missing = [f for f in required if f not in data]
     if missing:
         return jsonify({"message": f"Missing required field(s): {', '.join(missing)}"}), 400
 
+    conn = None
     try:
         # ---- parse inputs ----
         currency = str(data["currency"]).upper().strip()             # "EUR" or "USD"
@@ -2081,12 +2172,16 @@ def implied_vol_from_db():
         if not np.isfinite(spot) or spot <= 0:
             return jsonify({"message": "spot must be a positive number"}), 400
 
-        # target maturity
+        # optional target maturity for pricing (T*)
+        # Prefer 'expiry_date' (canonical); accept legacy 'value_date' for backward compatibility
         today = datetime.today()
-        value_date = datetime.strptime(str(data["value_date"]).strip(), "%Y-%m-%d")
-        T = (value_date - today).days / 365.0
-        if T <= 0:
-            return jsonify({"message": "Maturity must be in the future"}), 400
+        date_raw = (str(data.get("expiry_date") or data.get("value_date") or "").strip())
+        T = None
+        if date_raw:
+            expiry_date = datetime.strptime(date_raw, "%Y-%m-%d")
+            T = (expiry_date - today).days / 365.0
+            if T <= 0:
+                return jsonify({"message": "Maturity must be in the future"}), 400
 
         # optional admin-provided target strike at T*
         strike_in = data.get("strike")
@@ -2141,6 +2236,44 @@ def implied_vol_from_db():
         pairs = sorted(zip(T_list, sigma_list), key=lambda x: x[0])
         T_sorted, sigma_sorted = zip(*pairs)
 
+        # If no value_date provided → build-only response (no pricing at T*)
+        if T is None:
+            sigma_min = float(min(sigma_sorted))
+            sigma_max = float(max(sigma_sorted))
+            # optional persistence
+            surface_id = None
+            activation = None
+            if bool(data.get("persist_surface", False)):
+                try:
+                    snap = _save_surface_snapshot(
+                        currency=currency,
+                        option_type=option_type,
+                        transaction_type=transaction_type,
+                        valuation_date=today.date(),
+                        spot=spot,
+                        pts=pairs
+                    )
+                    surface_id = getattr(snap, "id", None)
+                    activation = getattr(snap, "created_at", None)
+                except Exception:
+                    # persistence errors are non-fatal for build-only
+                    pass
+
+            return jsonify({
+                "message": "surface_built",
+                "currency": currency,
+                "option_type": option_type,
+                "transaction_type": transaction_type,
+                "spot_used": spot,
+                "points": len(pairs),
+                "sigma_min": sigma_min,
+                "sigma_max": sigma_max,
+                "vol_points_used": [{"T": float(t), "sigma": float(s)} for t, s in pairs],
+                "valuation_date": today.date().isoformat(),
+                "surface_id": surface_id,
+                "activation": activation,
+            }), 200
+
         # ---- interpolate σ at target T (allow single-point fallback) ----
         if len(T_sorted) == 1:
             sigma = float(sigma_sorted[0])
@@ -2177,11 +2310,10 @@ def implied_vol_from_db():
                     spot=spot,
                     pts=pairs
                 )
-            except Exception as e:
+            except Exception:
                 # Don't fail pricing if persistence fails; just report it
                 # (You can make this strict later if you prefer)
                 pass
-
 
         return jsonify({
             "T_years": round(T, 6),
@@ -2210,6 +2342,7 @@ def implied_vol_from_db():
         return jsonify({"message": f"Error: {str(e)}"}), 500
     finally:
         try:
-            conn.close()
+            if conn is not None:
+                conn.close()
         except Exception:
             pass
