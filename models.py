@@ -100,6 +100,8 @@ class Order(db.Model):
     deleted = db.Column(db.Boolean, default=False, nullable=False)
     historical_loss = db.Column(db.Float, nullable=True)
     interbank_rate = db.Column(db.Float, nullable=True, default=None)
+    # TND conversion rate used in invoice calculations (defaults to 1.0 when not provided)
+    tnd_rate = db.Column(db.Float, nullable=True, default=1.0)
     execution_rate = db.Column(db.Float, nullable=True, default=None)
     bank_name = db.Column(db.String(100), nullable=True, default=None)
     matched_order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=True)  
@@ -117,6 +119,8 @@ class Order(db.Model):
     gain_percentage = db.Column(db.Float, nullable=True, default=0)
     commission_percent = db.Column(db.Float)  
     commission_gain = db.Column(db.Float, nullable=True, default=0.0) 
+    # Arbitrage transaction flag (from older schema)
+    is_arbitrage = db.Column(db.Boolean, default=False)
     # Relationships
     user = db.relationship('User', backref='orders', lazy=True)
     matched_order = db.relationship('Order', remote_side=[id], backref='related_orders')
@@ -275,6 +279,8 @@ class Invoice(db.Model):
     creation_date = db.Column(db.Date,    nullable=False)          
     due_date      = db.Column(db.Date,    nullable=False)           # +7 days
     status        = db.Column(SAEnum(InvoiceStatus), default=InvoiceStatus.draft)
+    # Human-readable invoice number displayed to users (string); set to id by default
+    invoice_number = db.Column(db.String(64), unique=True, nullable=True)
     json_payload  = db.Column(db.JSON)     
     pdf_url       = db.Column(db.String)    
     total_ht      = db.Column(db.Float)   

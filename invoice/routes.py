@@ -14,6 +14,8 @@ from models import db, User, Order, Invoice, InvoiceStatus
 from user.routes import calculate_benchmark, compute_bank_gains   # reuse your helper!
 from user.routes import bank_gains           # we’ll call it internally
 
+
+
 def get_invoice_transactions(client_id, year, month, currencies=("USD", "EUR")):
     from datetime import date
     from models import Order
@@ -72,12 +74,16 @@ def build_invoice_rows(orders, netting_enabled=False):
             gain_pct = gain_tnd = 0.0
 
         comm_pct = o.commission_percent or 0.0
-        comm_tnd = o.execution_rate * o.original_amount * comm_pct
+        
+        # Simple fee calculation: multiply by TND rate if it exists, otherwise by 1
+        tnd_rate = o.tnd_rate if o.tnd_rate else 1.0
+        execution_rate = o.execution_rate if o.execution_rate else 0.0
+        comm_tnd = execution_rate * o.original_amount * comm_pct * tnd_rate
 
         def thousands(x):  return f"{x:,.3f}".replace(",", " ").replace(".", ",")
         fmt_eur  = lambda x: f" {thousands(x)}"
         fmt_tnd  = lambda x: f"{thousands(x)} TND"
-        fmt_rate = lambda r: "" if (r is None or math.isnan(r)) else f"{r:,.4f}".replace(",", " ").replace(".", ",")
+        fmt_rate = lambda r: "0" if (r is None or math.isnan(r)) else f"{r:,.4f}".replace(",", " ").replace(".", ",")
         fmt_pct  = lambda p: f"{p:.2f}%"
 
         # Include reference if required
@@ -86,9 +92,9 @@ def build_invoice_rows(orders, netting_enabled=False):
             "Date Valeur": o.value_date.strftime("%-d/%-m/%Y"),
             "Devise": o.currency,
             "Type": o.transaction_type.title(),
-            "Type d’opération": o.trade_type.title(),
+            "Type d'opération": o.trade_type.title(),
             "Montant": fmt_eur(o.original_amount),
-            "Taux d’exécution": fmt_rate(o.execution_rate),
+            "Taux d'exécution": fmt_rate(o.execution_rate),
             "Banque": o.bank_name or "N/A",
             "Taux de référence *": fmt_rate(bench),
             "% Gain": fmt_pct(gain_pct * 100),
@@ -96,6 +102,7 @@ def build_invoice_rows(orders, netting_enabled=False):
             "Commission CC ***": comm_tnd,
             "Commission CC": f"{comm_tnd:,.3f}".replace(",", " ").replace(".", ",") + " TND",
             "Commission Percent": fmt_pct((o.commission_percent or 0.0) * 100),
+            "TND Rate": fmt_rate(tnd_rate),
         }
         if hasattr(o, "reference"):
             row["Référence"] = o.reference or ""
@@ -229,9 +236,9 @@ def draft_invoice():
     )
     # mixed-currency handling → total traded in TND
     total_traded_tnd = sum(
-    _parse_tnd(r["Montant"]) * _parse_tnd(r["Taux d’exécution"])
-    for r in var_rows
-)
+        _parse_tnd(r["Montant"]) * _parse_tnd(r.get("Taux d'exécution", "0"))
+        for r in var_rows
+    )
 
     # --- fixed fee ----------------------------------------------------------
     fixed_row = _fixed_fee_row(client, year, month)
@@ -286,8 +293,29 @@ def draft_invoice():
     )
     db.session.add(inv)
     db.session.commit()
+    # Set invoice_number to id unless overridden
+    invoice_number = data.get("invoice_number")
+    if not invoice_number:
+        inv.invoice_number = str(inv.id)
+    else:
+        inv.invoice_number = str(invoice_number)
+    db.session.commit()
+    return jsonify({"invoice_id": inv.id, "invoice_number": inv.invoice_number}), 201
 
-    return jsonify({"invoice_id": inv.id}), 201
+# --- PATCH endpoint to update invoice_number ---
+@invoice_bp.route("/<int:inv_id>/number", methods=["PATCH"])
+@jwt_required()
+def update_invoice_number(inv_id):
+    if not _is_admin():
+        return jsonify({"error": "Admin role required"}), 403
+    inv = Invoice.query.get_or_404(inv_id)
+    data = request.get_json() or {}
+    invoice_number = data.get("invoice_number")
+    if not invoice_number:
+        return jsonify({"error": "Missing invoice_number"}), 400
+    inv.invoice_number = str(invoice_number)
+    db.session.commit()
+    return jsonify({"message": "Invoice number updated", "invoice_number": inv.invoice_number}), 200
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 3.  POST /invoice/<id>/confirm
@@ -394,7 +422,8 @@ def list_invoices():
         "due_date": i.due_date.isoformat(),
         "total_ttc": i.total_ttc,
         "status": i.status.value,
-        "pdf_url": i.pdf_url
+        "pdf_url": i.pdf_url,
+        "invoice_number": i.invoice_number,
     } for i in q.order_by(Invoice.creation_date.desc()).all()]
 
     return jsonify(rows), 200
@@ -442,7 +471,8 @@ def get_invoice(inv_id):
         "due_date": inv.due_date.isoformat(),
         "status": inv.status.value,
         "pdf_url": inv.pdf_url,
-        "payload": inv.json_payload
+        "payload": inv.json_payload,
+        "invoice_number": inv.invoice_number,
     }), 200
 
 # ──────────────────────────────────────────────────────────────────────────────

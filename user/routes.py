@@ -529,7 +529,8 @@ def submit_order_or_option():
 
     # 3) final decision & default status ---------------
     trade_type = "option" if is_option else incoming_trade_type
-    status     = "Market" if trade_type in ("option") else "Pending"
+    # Use explicit equality; ("option") is a string, not a tuple
+    status     = "Market" if (trade_type == "option") else "Pending"
         
     computed_premium = None
     moneyness = None
@@ -537,6 +538,14 @@ def submit_order_or_option():
     final_strike = None
     strike_src = None
     rev = None
+    # Defaults so payload keys exist for spot/forward too
+    sigma = None
+    delta = None
+    gamma = None
+    theta = None
+    yield_domestic = None
+    yield_foreign = None
+    vol_points = None
 
     if is_option:
         if option_type not in ["CALL", "PUT"]:
@@ -633,8 +642,6 @@ def submit_order_or_option():
         debug_logs.append(f"Final strike: {final_strike}, Moneyness: {moneyness}")
 
         # 5) Sigma source: admin override OR ACTIVE surface (no IV solving in user flow)
-        sigma = None
-        vol_points = None
         if _is_admin() and data.get("volatility_input") is not None:
             try:
                 sigma = float(data["volatility_input"])
@@ -669,8 +676,7 @@ def submit_order_or_option():
 
 
         # Price if sigma is available; otherwise skip pricing
-        rev = None
-        delta = gamma = theta = None
+    # rev already defined; greeks default to None unless priced
         if sigma is not None:
             rev = reverse_premium_from_vol(
                     option_type=option_type.lower(),
@@ -720,6 +726,8 @@ def submit_order_or_option():
             else:
                 return jsonify({"message": "Unsupported currency", "debug": debug_logs}), 400
         rd, rf = get_rates_at_T(f"{currency.upper()}/TND", T)
+        # keep diagnostic naming consistent with option path
+        yield_domestic, yield_foreign = rd, rf
         computed_forward = strike_from_spot(spot_rate, rd, rf, T)
         debug_logs.append(f"Forward computed: S={spot_rate}, rd={rd}, rf={rf}, T={T} -> F={computed_forward}")
 
