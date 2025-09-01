@@ -1358,7 +1358,7 @@ def download_orders_template_admin():
         "Transaction date", "Value date", "Currency", "Type",
         "Amount", "Execution rate", "Bank", "Interbancaire",
         "Historical Loss", "Commission %", "Trade Type",  # ← req.
-        "Reference"                                       # ← optional
+        "TND Rate", "Reference"                                       # ← optional
     ]
     sample = {
         "Transaction date": "2025/07/01",
@@ -1372,6 +1372,7 @@ def download_orders_template_admin():
         "Historical Loss":  0.009,
         "Commission %":     0.15,
         "Trade Type":       "spot",
+        "TND Rate":         3.0,    
         "Reference":        "azerty",          
     }
     return _make_excel(cols, sample, filename="OrdersTemplate_Admin.xlsx")
@@ -1420,6 +1421,7 @@ def upload_orders():
     # Optional columns
     if "Reference"      not in df.columns: df["Reference"]      = ""
     if "Interbancaire"  not in df.columns: df["Interbancaire"]  = np.nan
+    if "TND Rate"       not in df.columns: df["TND Rate"]       = 1.0  # Default to 1.0 if not provided
 
     # 2) clean / coerce ---------------------------------------------
     df["Transaction date"] = pd.to_datetime(df["Transaction date"])
@@ -1428,6 +1430,7 @@ def upload_orders():
     df["Execution rate"]   = df["Execution rate"].replace(",", ".", regex=True).astype(float)
     df["Historical Loss"]  = df["Historical Loss"].replace(",", ".", regex=True).astype(float)
     df["Commission %"]     = df["Commission %"].replace(",", ".", regex=True).astype(float)
+    df["TND Rate"]         = df["TND Rate"].replace(",", ".", regex=True).astype(float)
     df["Trade Type"]       = df["Trade Type"].str.lower().str.strip()
     df["Type"]             = df["Type"].str.lower().str.strip()
 
@@ -1449,6 +1452,29 @@ def upload_orders():
         except ValueError as exc:
             return {"error": f"Row {idx+2}: {exc}"}, 400
 
+        #lookup = dict(
+        #    transaction_date = row["Transaction date"],
+        #    value_date       = row["Value date"],
+        #    currency         = row["Currency"].upper(),
+        #    transaction_type = row["Type"],
+        #    amount           = row["Amount"],
+        #    user_id          = client.id,
+        #)
+
+        ref = row["Reference"]
+        reference = None if not ref or str(ref).strip() == "-" else ref
+        common = dict(
+            reference          = reference,
+            bank_name          = row["Bank"],
+            execution_rate     = row["Execution rate"],
+            interbank_rate     = ib_val,
+            historical_loss    = row["Historical Loss"],
+            commission_percent = row["Commission %"],
+            trade_type         = row["Trade Type"],
+            tnd_rate           = row["TND Rate"],  # Store TND rate for fee calculation
+            status             = "Executed",
+        )
+
         lookup = dict(
             transaction_date = row["Transaction date"],
             value_date       = row["Value date"],
@@ -1456,16 +1482,6 @@ def upload_orders():
             transaction_type = row["Type"],
             amount           = row["Amount"],
             user_id          = client.id,
-        )
-        common = dict(
-            reference          = row["Reference"] or None,
-            bank_name          = row["Bank"],
-            execution_rate     = row["Execution rate"],
-            interbank_rate     = ib_val,
-            historical_loss    = row["Historical Loss"],
-            commission_percent = row["Commission %"],
-            trade_type         = row["Trade Type"],
-            status             = "Executed",
         )
 
         order = Order.query.filter_by(**lookup).first()

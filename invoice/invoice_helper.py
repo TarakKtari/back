@@ -85,7 +85,11 @@ def build_invoice(client: User, period_start: date, period_end: date) -> Invoice
     variable_lines, total_comm_tnd = [], 0.0
     for o in orders:
         pct  = o.commission_percent or 0.0
-        tnd  = (o.execution_rate or 0) * o.original_amount * pct
+        #tnd  = (o.execution_rate or 0) * o.original_amount * pct
+        
+        # Simple fee calculation: multiply by TND rate if it exists, otherwise by 1
+        tnd_rate = o.tnd_rate if o.tnd_rate else 1.0
+        tnd  = (o.execution_rate or 0) * o.original_amount * pct * tnd_rate
         total_comm_tnd += tnd
 
         variable_lines.append(InvoiceLine(

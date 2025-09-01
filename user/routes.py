@@ -1959,6 +1959,8 @@ def upload_orders():
             ib_rate = get_interbank_rate_from_db(tx_date, currency)
             if ib_rate is None:
                 raise Exception(f"No interbank rate for {currency} on {tx_date}")
+            ref = row["Reference"]
+            reference = None if not ref or str(ref).strip() == "-" else ref
 
             new_order = Order(
                 user                = user,
@@ -1971,7 +1973,8 @@ def upload_orders():
                 transaction_date    = tx_date,
                 order_date          = datetime.utcnow(),
                 bank_account        = row["Bank Account"],
-                reference           = row["Reference"] or None,
+                reference           = reference,
+
                 option_type         = (row["Option Type"] or None).upper() if pd.notna(row["Option Type"]) else None,
                 strike              = float(row["Strike"]) if pd.notna(row["Strike"]) else None,
                 status              = "Pending" if row["Trade Type"] == "spot" else "Market",

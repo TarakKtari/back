@@ -32,6 +32,8 @@ limiter.init_app(app)
 
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:pass123@localhost:5432/postgres'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:pass123@db:5432/postgres'
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_URL")
+
 app.config['SECRET_KEY']     = os.getenv("FLASK_SECRET")
 app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET")
 app.config['FRONTEND_RESET_URL'] = os.getenv(
